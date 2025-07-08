@@ -1392,7 +1392,7 @@
          CALL comenv(mass0(j1),mass(j1),massc(j1),aj(j1),jspin(j1),
      &               kstar(j1),mass0(j2),mass(j2),massc(j2),aj(j2),
      &               jspin(j2),kstar(j2),zpars,ecc,sep,jorb,
-     &               vkick(4*(j1-1)+1),vkick(4*(j2-1)+1),coel)
+     &               vkick(4*(j1-1)+1),vkick(4*(j2-1)+1),coel,z)
 *
          jp = MIN(jpmax,jp + 1)
          bpp(jp,1) = tphys
@@ -2402,13 +2402,13 @@
          CALL comenv(mass0(j1),mass(j1),massc(j1),aj(j1),jspin(j1),
      &               kstar(j1),mass0(j2),mass(j2),massc(j2),aj(j2),
      &               jspin(j2),kstar(j2),zpars,ecc,sep,jorb,
-     &               vkick(4*(j1-1)+1),vkick(4*(j2-1)+1),coel)
+     &               vkick(4*(j1-1)+1),vkick(4*(j2-1)+1),coel,z)
          com = .true.
       elseif(kstar(j2).ge.2.and.kstar(j2).le.9.and.kstar(j2).ne.7)then
          CALL comenv(mass0(j2),mass(j2),massc(j2),aj(j2),jspin(j2),
      &               kstar(j2),mass0(j1),mass(j1),massc(j1),aj(j1),
      &               jspin(j1),kstar(j1),zpars,ecc,sep,jorb,
-     &               vkick(4*(j2-1)+1),vkick(4*(j1-1)+1),coel)
+     &               vkick(4*(j2-1)+1),vkick(4*(j1-1)+1),coel,z)
          com = .true.
       else
          CALL mix(mass0,mass,aj,kstar,zpars)
