@@ -41,6 +41,10 @@
       REAL*8 CELAMF,RL,RZAMSF
       EXTERNAL CELAMF,RL,RZAMSF
 
+      REAL*8 bhspin1,bhspin2,rad1_bpp,rad2_bpp,lumin(2),teff1,teff2
+      INTEGER ce2stageflag
+      INTEGER star1,star2
+      LOGICAL output,switchedCE
       REAL*8 mconvmax1,mconv1,tmin1,tonset1
       REAL*8 mconvmax2,mconv2,tmin2,tonset2
       REAL*8 ragbf,menvmax,mconvenv,celamhe,tonset
@@ -63,8 +67,7 @@
          KW = KW1
          CALL star(KW1,M01,M1,TM1,TN,TSCLS1,LUMS,GB,ZPARS)
          CALL hrdiag(M01,AJ1,M1,TM1,TN,TSCLS1,LUMS,GB,ZPARS,
-     &           R1,L1,KW1,MC1,RC1,MENV,RENV,K21,
-     &           bhspin1,star1)
+     &           R1,L1,KW1,MC1,RC1,MENV,RENV,K21,fbfac,fbtot,mco,ecs)
          OSPIN1 = JSPIN1/(K21*R1*R1*(M1-MC1)+K3*RC1*RC1*MC1)
          if(switchedCE)then
             teff1 = 1000.d0*((1130.d0*lumin(2)/
@@ -92,8 +95,7 @@
          KW = KW2
          CALL star(KW2,M02,M2,TM2,TN,TSCLS2,LUMS,GB,ZPARS)
          CALL hrdiag(M02,AJ2,M2,TM2,TN,TSCLS2,LUMS,GB,ZPARS,
-     &           R2,L2,KW2,MC2,RC2,MENV,RENV,K22,
-     &           bhspin2,star2)
+     &           R2,L2,KW2,MC2,RC2,MENV,RENV,K22,fbfac,fbtot,mco,ecs)
          OSPIN2 = JSPIN2/(K22*R2*R2*(M2-MC2)+K3*RC2*RC2*MC2)
          if(switchedCE)then
             teff2 = 1000.d0*((1130.d0*lumin(1)/

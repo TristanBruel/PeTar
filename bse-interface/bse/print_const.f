@@ -15,6 +15,7 @@
 *      write(*,*) 'rand3: idum2:',idum2,' iy:',iy,' ir:',ir
       write(*,*) 'flags: ceflag:',ceflag,' tflag:',tflag,
      &     ' ifflag:',ifflag,' nsflag:',nsflag,' wdflag:',wdflag
+      write(*,*) 'flag: ce2stageflag:',ce2stageflag
       write(*,*) 'flags2: psflag:',psflag,' kmech:',kmech,
      &     ' ecflag:',ecflag
       write(*,*) 'points: pts1:',pts1,' pts2:',pts2,' pts3:',pts3

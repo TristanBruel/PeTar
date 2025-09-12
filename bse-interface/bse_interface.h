@@ -87,6 +87,7 @@ extern "C" {
 
     extern struct{
         int ceflag; ///> common envelope model
+        int ce2stageflag; ///> two-stage common envelope formalism
         int tflag;  ///> tidal circularization 
         int ifflag; ///> if > 0 uses WD IFMR of HPE, 1995, MNRAS, 272, 800 (0).  (not work any more)
         int nsflag; ///> NS/BH formation
@@ -187,6 +188,7 @@ extern "C" {
 
     extern struct{
         int ceflag; ///> common envelope model (0 normally)
+        int ce2stageflag; ///> two-stage common envelope formalism
         int tflag;  ///> tidal circularization (1 normally)
         int ifflag; ///> if > 0 uses WD IFMR of HPE, 1995, MNRAS, 272, 800 (0).  (not work any more)
         int nsflag; ///> NS/BH formation (3 normally Delayed)
@@ -638,6 +640,7 @@ public:
     IOParams<double> sigma2;
 #endif
     IOParams<long long int> ceflag;
+    IOParams<long long int> ce2stageflag;
     IOParams<long long int> tflag;
     //IOParams<long long int> ifflag;
     IOParams<long long int> wdflag;
@@ -671,7 +674,7 @@ public:
                    bwind (input_par_store, 0.0, "bse-bwind", "Binary enhanced mass loss parameter; inactive for single"),
                    hewind(input_par_store, 1.0, "bse-hewind","Helium star mass loss factor"),
                    //mxns  (input_par_store, 1.0, "bse-mxns",   "Helium star mass loss factor"),
-                   alpha (input_par_store, 3.0,   "bse-alpha",  "Common-envelope efficiency parameter"),
+                   alpha (input_par_store, 1.0,   "bse-alpha",  "Common-envelope efficiency parameter"),
                    lambda(input_par_store, 0.5,   "bse-lambda", "Binding energy factor for common envelope evolution"),
                    beta  (input_par_store, 0.125, "bse-beta",   "wind velocity factor: proportional to vwind**2"),
                    xi    (input_par_store, 1.0,   "bse-xi",     "wind accretion efficiency factor"),
@@ -681,6 +684,7 @@ public:
                    gamma (input_par_store, -1.0,  "bse-gamma",  "Angular momentum factor for mass lost during Roche"),
                    sigma (input_par_store, 265.0, "bse-sigma",  "Dispersion in the Maxwellian for the SN kick speed [km/s]"),
                    ceflag(input_par_store, 0,     "bse-ceflag", "if =3, activates de Kool common-envelope model"),
+                   ce2stageflag(input_par_store, 0, "bse-ce2stageflag", "if =1, activates Hirai & Mandel two-stage common-envelope formalism"),
                    tflag (input_par_store, 1,     "bse-tflag",  "if >0, activates tidal circularisation"),
                    //ifflag(input_par_store, 2,   "bse-ifflag", "if > 0 uses WD IFMR of HPE, 1995, MNRAS, 272, 800"),
                    wdflag(input_par_store, 1,     "bse-wdflag", "if >0, uses WD IFMR of HPE, 1995, MNRAS, 272, 800"),
@@ -689,7 +693,7 @@ public:
                    psflag(input_par_store, 1,     "bse-psflag", "PPSN condition (Belczynski 2016): 0: no PPSN; 1: strong; (Leung 2019): 2: moderate; 3: weak"),
                    kmech (input_par_store, 1,     "bse-kmech",  "Kick mechanism: 1: standard momentum-conserving; 2: convection-asymmetry-driven; 3: collapse-asymmerty-driven; 4: neutrino driven"),
                    ecflag(input_par_store, 1,     "bse-ecflag", "if >0, ECS is switched on"),
-                   pts1  (input_par_store, 0.05,  "bse-pts1",   "time step of MS"),
+                   pts1  (input_par_store, 0.001, "bse-pts1",   "time step of MS"),
                    pts2  (input_par_store, 0.01,  "bse-pts2",   "time step of GB, CHeB, AGB, HeGB"),
                    pts3  (input_par_store, 0.02,  "bse-pts3",   "time step of HG, HeMS"),
 #ifdef BSEEMP
@@ -723,6 +727,7 @@ public:
                    sigma1 (input_par_store, 265.0,  "mobse-sigma1", "Dispersion in the Maxwellian for the CCSN kick speed [km/s]"),
                    sigma2 (input_par_store, 265.0,  "mobse-sigma2", "Dispersion in the Maxwellian for the ECSN kick speed [km/s]"),
                    ceflag(input_par_store, 0,       "mobse-cflag",  "if =3, activates de Kool common-envelope model"),
+                   ce2stageflag(input_par_store, 0, "mobse-ce2stageflag", "if =1, activates Hirai & Mandel two-stage common-envelope formalism"),
                    tflag (input_par_store, 1,       "mobse-tflag",  "if >0, activates tidal circularisation"),
                    //ifflag(input_par_store, 2,   "if > 0 uses WD IFMR of HPE, 1995, MNRAS, 272, 800"),
                    wdflag(input_par_store, 1,       "mobse-wdflag", "if >0, uses WD IFMR of HPE, 1995, MNRAS, 272, 800"),
@@ -774,6 +779,7 @@ public:
 #endif
           //{ifflag.key, required_argument, &sse_flag, 7},
             {ceflag.key, required_argument, &sse_flag, 6},
+            {ce2stageflag.key, required_argument, &sse_flag, 31},
             {tflag.key,  required_argument, &sse_flag, 7},
             {wdflag.key, required_argument, &sse_flag, 8},
             {bhflag.key, required_argument, &sse_flag, 9}, 
@@ -850,6 +856,11 @@ public:
                 case 6:
                     ceflag.value = atof(optarg);
                     if(print_flag) ceflag.print(std::cout);
+                    opt_used+=2;
+                    break;
+		case 31:
+                    ce2stageflag.value = atof(optarg);
+                    if(print_flag) ce2stageflag.print(std::cout);
                     opt_used+=2;
                     break;
                 case 7:
@@ -1258,6 +1269,7 @@ public:
         value5_.gamma  = _input.gamma.value;
 
         flags_.ceflag = _input.ceflag.value;
+        flags_.ce2stageflag = _input.ce2stageflag.value;
         flags_.tflag  = _input.tflag.value;
         //flags_.ifflag = _input.ifflag.value;
         flags_.wdflag = _input.wdflag.value;

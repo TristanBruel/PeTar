@@ -20,6 +20,7 @@ F bse-vscale      9.778131076864010e-01
 F bse-xi      1.000000000000000e+00
 I bse-bhflag 2
 I bse-ceflag 0
+I bse-ce2stageflag 0
 I bse-ecflag 1
 I bse-idum 1234
 I bse-kmech 1

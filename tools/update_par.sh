@@ -197,6 +197,8 @@ if [ $mode == 'b' ]; then
     ic=`expr $ic + 1`
     echo 'I bse-ceflag '${value[$ic]} >>$fname.new
     ic=`expr $ic + 1`
+    echo 'I bse-ce2stageflag '${value[$ic]} >>$fname.new
+    ic=`expr $ic + 1`
     echo 'I bse-tflag '${value[$ic]} >>$fname.new
     ic=`expr $ic + 1`
     echo 'I bse-wdflag '${value[$ic]} >>$fname.new

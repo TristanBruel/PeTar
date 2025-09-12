@@ -8,8 +8,9 @@
       INTEGER ktype(0:14,0:14)
       COMMON /TYPES/ ktype
       INTEGER ceflag,tflag,ifflag,nsflag,wdflag
-      INTEGER ce2stageflag
       COMMON /FLAGS/ ceflag,tflag,ifflag,nsflag,wdflag
+      INTEGER ce2stageflag
+      COMMON /FLAGS/ ce2stageflag
       INTEGER bhflag
       INTEGER psflag,kmech,ecflag
       COMMON /FLAGS2/ psflag,kmech,ecflag

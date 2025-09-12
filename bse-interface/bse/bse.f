@@ -65,6 +65,8 @@
 *
 * ceflag > 0 activates spin-energy correction in common-envelope (0). #defunct#
 * ceflag = 3 activates de Kool common-envelope model (0). 
+* ce2stageflag = 1 activates 2-stage common-envelope formalism
+
 * tflag > 0 activates tidal circularisation (1).
 * ifflag > 0 uses WD IFMR of HPE, 1995, MNRAS, 272, 800 (0). 
 * wdflag > 0 uses modified-Mestel cooling for WDs (0). 
