@@ -64,7 +64,7 @@
       alpha1 = 1.0
       lambda = 0.5 
       ceflag = 0
-      ce2stageflag = 0
+      ce2stageflag = 1
       tflag = 1
       ifflag = 0 
       wdflag = 1 

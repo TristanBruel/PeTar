@@ -227,6 +227,8 @@
 * The bpp array acts as a log, storing parameters at each change
 * of evolution stage.
 *
+      write(*,*) 'flag: CEFLAG [bse]:',ceflag
+      write(*,*) 'flag: CE2STAGEFLAG [bse]:',ce2stageflag
       j = 0
       WRITE(*,*)'     TIME      M1       M2   K1 K2        SEP    ECC',
      &          '  R1/ROL1 R2/ROL2  TYPE'

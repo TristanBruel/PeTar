@@ -2,7 +2,8 @@
       SUBROUTINE COMENV(M01,M1,MC1,AJ1,JSPIN1,KW1,
      &                  M02,M2,MC2,AJ2,JSPIN2,KW2,
      &                  ZPARS,ECC,SEP,JORB,
-     &                  VKICK1,VKICK2,COEL,z)
+     &                  VKICK1,VKICK2,COEL,
+     &                  rad,lumin,z)
 *
 * Common Envelope Evolution.
 *
@@ -17,8 +18,8 @@
       INTEGER KW1,KW2,KW
       INTEGER KTYPE(0:14,0:14)
       COMMON /TYPES/ KTYPE
-      INTEGER ceflag,tflag,ifflag,nsflag,wdflag
-      COMMON /FLAGS/ ceflag,tflag,ifflag,nsflag,wdflag
+      INTEGER ceflag,ce2stageflag,tflag,ifflag,nsflag,wdflag
+      COMMON /FLAGS/ ceflag,ce2stageflag,tflag,ifflag,nsflag,wdflag
 *
       REAL*8 M01,M1,MC1,AJ1,JSPIN1,R1,L1,K21
       REAL*8 M02,M2,MC2,AJ2,JSPIN2,R2,L2,K22,MC22
@@ -41,8 +42,7 @@
       REAL*8 CELAMF,RL,RZAMSF
       EXTERNAL CELAMF,RL,RZAMSF
 
-      REAL*8 bhspin1,bhspin2,rad1_bpp,rad2_bpp,lumin(2),teff1,teff2
-      INTEGER ce2stageflag
+      REAL*8 bhspin1,bhspin2,rad(2),lumin(2),teff1,teff2
       INTEGER star1,star2
       LOGICAL output,switchedCE
       REAL*8 mconvmax1,mconv1,tmin1,tonset1
@@ -63,22 +63,31 @@
 *
 * In the case of 2-stage formalism (Hirai & Mandel 2022)
 *
+*      write(*,*) 'flag: CEFLAG [comenv]:',CEFLAG
+*      write(*,*) 'flag: CE2STAGEFLAG [comenv]:',CE2STAGEFLAG
       IF(CE2STAGEFLAG.EQ.1)THEN
          KW = KW1
          CALL star(KW1,M01,M1,TM1,TN,TSCLS1,LUMS,GB,ZPARS)
          CALL hrdiag(M01,AJ1,M1,TM1,TN,TSCLS1,LUMS,GB,ZPARS,
      &           R1,L1,KW1,MC1,RC1,MENV,RENV,K21,fbfac,fbtot,mco,ecs)
          OSPIN1 = JSPIN1/(K21*R1*R1*(M1-MC1)+K3*RC1*RC1*MC1)
+*         write(*,*) 'rad [comenv]:',rad
+*         write(*,*) 'lumin [comenv]:',lumin
          if(switchedCE)then
             teff1 = 1000.d0*((1130.d0*lumin(2)/
-     &           (rad2_bpp**2.d0))**(1.d0/4.d0))
+     &           (rad(2)**2.d0))**(1.d0/4.d0))
          else
             teff1 = 1000.d0*((1130.d0*lumin(1)/
-     &           (rad1_bpp**2.d0))**(1.d0/4.d0))
+     &           (rad(1)**2.d0))**(1.d0/4.d0))
          endif
          reagb = ragbf(M1,LUMS(7),zpars(2))
+*         write(*,*) 'M1:',M1
+*         write(*,*) 'LUMS(7):',LUMS(7)
+*         write(*,*) 'zpars(2):',zpars(2)
+*         write(*,*) 'reagb:',reagb
          tmin1 = 1000.d0*((1130.d0*LUMS(7)/(reagb**2.d0))**(1.d0/4.d0))
          tonset1 = tonset(tmin1,z)
+*         write(*,*) 'z:',z
          mconvmax1 = menvmax(KW,M1,z)
          mconv1 = mconvenv(KW,M1,z,teff1,tmin1,tonset1,AJ1,TM1)
 * if mass > 8 Msun, the mass of the envelope participating in the first stage is the mass of the convective one
@@ -99,10 +108,10 @@
          OSPIN2 = JSPIN2/(K22*R2*R2*(M2-MC2)+K3*RC2*RC2*MC2)
          if(switchedCE)then
             teff2 = 1000.d0*((1130.d0*lumin(1)/
-     &           (rad1_bpp**2.d0))**(1.d0/4.d0))
+     &           (rad(1)**2.d0))**(1.d0/4.d0))
          else
             teff2 = 1000.d0*((1130.d0*lumin(2)/
-     &           (rad2_bpp**2.d0))**(1.d0/4.d0))
+     &           (rad(2)**2.d0))**(1.d0/4.d0))
          endif
          reagb = ragbf(M2,LUMS(7),zpars(2))
          tmin2 = 1000.d0*((1130.d0*LUMS(7)/(reagb**2.d0))**(1.d0/4.d0))
@@ -158,6 +167,20 @@
 *
          EORBF = EORBI + EBINDI/ALPHA1
          SEPF = m1endstage1*m2endstage1/(2.D0*EORBF)
+
+*         print*, 'Tmin 1', tmin1
+*         print*, 'Tonset 1', tonset1
+*         print*, 'Teff 1', teff1
+*         print*, 'Max convective envelope mass 1', mconvmax1
+*         print*, 'Mass of the convective envelope 1', mconv1
+*         print*, 'Mass 1 after 1st stage', m1endstage1
+*         print*, 'Tmin 2', tmin2
+*         print*, 'Tonset 2', tonset2
+*         print*, 'Teff 2', teff2
+*         print*, 'Max convective envelope mass 2', mconvmax2
+*         print*, 'Mass of the convective envelope 2', mconv2
+*         print*, 'Mass 2 after 1st stage', m2endstage1
+*         print*, 'Separation after 1st stage', SEPF
 *
 * Second stage: stable mass transfer of the radiative intershell
 *

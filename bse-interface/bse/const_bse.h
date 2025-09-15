@@ -7,10 +7,8 @@
       COMMON /RAND3/ idum2,iy,ir
       INTEGER ktype(0:14,0:14)
       COMMON /TYPES/ ktype
-      INTEGER ceflag,tflag,ifflag,nsflag,wdflag
-      COMMON /FLAGS/ ceflag,tflag,ifflag,nsflag,wdflag
-      INTEGER ce2stageflag
-      COMMON /FLAGS/ ce2stageflag
+      INTEGER ceflag,ce2stageflag,tflag,ifflag,nsflag,wdflag
+      COMMON /FLAGS/ ceflag,ce2stageflag,tflag,ifflag,nsflag,wdflag
       INTEGER bhflag
       INTEGER psflag,kmech,ecflag
       COMMON /FLAGS2/ psflag,kmech,ecflag
