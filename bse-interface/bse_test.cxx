@@ -52,7 +52,7 @@ int main(int argc, char** argv){
 
     auto printHelp= [&]() {
         std::cout<<"The tool to evolve single stars or binaries using "<<BSEManager::getBSEName()<<std::endl;
-#ifdef MOBSE
+#if (defined MOBSE) || (defined COSMIC) || (defined METISSE)
         BSEManager::printLogo(std::cout);
 #endif
         BSEManager::printReference(std::cout);

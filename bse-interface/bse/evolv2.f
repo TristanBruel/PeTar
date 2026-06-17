@@ -161,8 +161,8 @@
       INTEGER kstar(2),kw,kst,kw1,kw2,kmin,kmax
       INTEGER ktype(0:14,0:14)
       COMMON /TYPES/ ktype
-      INTEGER ceflag,ce2stageflag,tflag,ifflag,nsflag,wdflag
-      COMMON /FLAGS/ ceflag,ce2stageflag,tflag,ifflag,nsflag,wdflag
+      INTEGER ceflag,tflag,ifflag,nsflag,wdflag
+      COMMON /FLAGS/ ceflag,tflag,ifflag,nsflag,wdflag
 *
       REAL*8 km,km0,tphys,tphys0,dtm0,tphys00
       REAL*8 tphysf,dtp,tprint
@@ -1392,8 +1392,7 @@
          CALL comenv(mass0(j1),mass(j1),massc(j1),aj(j1),jspin(j1),
      &               kstar(j1),mass0(j2),mass(j2),massc(j2),aj(j2),
      &               jspin(j2),kstar(j2),zpars,ecc,sep,jorb,
-     &               vkick(4*(j1-1)+1),vkick(4*(j2-1)+1),coel,
-     &               rad,lumin,z)
+     &               vkick(4*(j1-1)+1),vkick(4*(j2-1)+1),coel)
 *
          jp = MIN(jpmax,jp + 1)
          bpp(jp,1) = tphys
@@ -2403,15 +2402,13 @@
          CALL comenv(mass0(j1),mass(j1),massc(j1),aj(j1),jspin(j1),
      &               kstar(j1),mass0(j2),mass(j2),massc(j2),aj(j2),
      &               jspin(j2),kstar(j2),zpars,ecc,sep,jorb,
-     &               vkick(4*(j1-1)+1),vkick(4*(j2-1)+1),coel,
-     &               rad,lumin,z)
+     &               vkick(4*(j1-1)+1),vkick(4*(j2-1)+1),coel)
          com = .true.
       elseif(kstar(j2).ge.2.and.kstar(j2).le.9.and.kstar(j2).ne.7)then
          CALL comenv(mass0(j2),mass(j2),massc(j2),aj(j2),jspin(j2),
      &               kstar(j2),mass0(j1),mass(j1),massc(j1),aj(j1),
      &               jspin(j1),kstar(j1),zpars,ecc,sep,jorb,
-     &               vkick(4*(j2-1)+1),vkick(4*(j1-1)+1),coel,
-     &               rad,lumin,z)
+     &               vkick(4*(j2-1)+1),vkick(4*(j1-1)+1),coel)
          com = .true.
       else
          CALL mix(mass0,mass,aj,kstar,zpars)

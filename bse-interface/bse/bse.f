@@ -65,8 +65,6 @@
 *
 * ceflag > 0 activates spin-energy correction in common-envelope (0). #defunct#
 * ceflag = 3 activates de Kool common-envelope model (0). 
-* ce2stageflag = 1 activates 2-stage common-envelope formalism
-
 * tflag > 0 activates tidal circularisation (1).
 * ifflag > 0 uses WD IFMR of HPE, 1995, MNRAS, 272, 800 (0). 
 * wdflag > 0 uses modified-Mestel cooling for WDs (0). 
@@ -99,7 +97,6 @@
       READ(22,*)mass0(1),mass0(2),tphysf,tb,kstar(1),kstar(2),z,ecc
       READ(22,*)neta,bwind,hewind,alpha1,lambda
       READ(22,*)ceflag,tflag,ifflag,wdflag,bhflag,nsflag,mxns,idum
-      READ(22,*)ce2stageflag
       READ(22,*)psflag,kmech,ecflag
       READ(22,*)pts1,pts2,pts3
       READ(22,*)sigma,beta,xi,acc2,epsnov,eddfac,gamma
@@ -227,8 +224,6 @@
 * The bpp array acts as a log, storing parameters at each change
 * of evolution stage.
 *
-      write(*,*) 'flag: CEFLAG [bse]:',ceflag
-      write(*,*) 'flag: CE2STAGEFLAG [bse]:',ce2stageflag
       j = 0
       WRITE(*,*)'     TIME      M1       M2   K1 K2        SEP    ECC',
      &          '  R1/ROL1 R2/ROL2  TYPE'

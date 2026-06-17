@@ -5634,7 +5634,7 @@ ac_compiler_gnu=$ac_cv_fc_compiler_gnu
 if test ${with_interrupt+y}
 then :
   withval=$with_interrupt; PROG_NAME=$PROG_NAME'.'$with_interrupt
-	     if test x"$with_interrupt" == xbse || test x"$with_interrupt" == xmobse || test x"$with_interrupt" == xbseEmp
+	     if test x"$with_interrupt" == xbse || test x"$with_interrupt" == xmobse || test x"$with_interrupt" == xbseEmp || test x"$with_interrupt" == xcosmic || test x"$with_interrupt" == xmetisse
 then :
   use_fortran=yes
 		    ac_ext=${ac_fc_srcext-f}

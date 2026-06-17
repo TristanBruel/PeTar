@@ -324,7 +324,7 @@ AC_ARG_WITH([interrupt],
 	    [AS_HELP_STRING([--with-interrupt],
 	                    [Interruption detection mode: Default: off])],
             [PROG_NAME=$PROG_NAME'.'$with_interrupt
-	     AS_IF([[test x"$with_interrupt" == xbse] || [test x"$with_interrupt" == xmobse] || [test x"$with_interrupt" == xbseEmp]],
+	     AS_IF([[test x"$with_interrupt" == xbse] || [test x"$with_interrupt" == xmobse] || [test x"$with_interrupt" == xbseEmp] || [test x"$with_interrupt" == xcosmic || [test x"$with_interrupt" == xmetisse]],
 	           [use_fortran=yes
 		    AC_LANG([Fortran])
                     #AC_PROG_FC([gfortran ifort flang])

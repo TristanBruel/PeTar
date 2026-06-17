@@ -157,7 +157,6 @@ File binary.in:
 mass0(1),mass0(2),tphysf,tb,kstar(1),kstar(2),z,ecc
 neta,bwind,hewind,alpha1,lambda
 ceflag,tflag,ifflag,wdflag,bhflag,nsflag,mxns,idum
-ce2stageflag
 psflag,kmech,ecflag
 pts1,pts2,pts3
 sigma,beta,xi,acc2,epsnov,eddfac,gamma

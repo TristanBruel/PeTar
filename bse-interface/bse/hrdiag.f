@@ -35,7 +35,6 @@
 *
       integer kw,kwp
       integer ceflag,tflag,ifflag,nsflag,wdflag 
-      integer ce2stageflag
       integer psflag,kmech,ecflag,bhflag
 *
       real*8 mass,aj,mt,tm,tn,tscls(20),lums(10),GB(10),zpars(20)
@@ -69,7 +68,6 @@
       external rgbf,rminf,ragbf,rzahbf,rzhef,rhehgf,rhegbf,rpertf
       external mctmsf,mcgbtf,mcgbf,mcheif,mcagbf,lzahbf
       COMMON /FLAGS/ ceflag,tflag,ifflag,nsflag,wdflag
-      COMMON /FLAGS/ ce2stageflag
       COMMON /FLAGS2/ psflag,kmech,ecflag
       COMMON /VALUE4/ sigma,mxns,bhflag
 *

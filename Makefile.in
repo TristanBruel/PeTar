@@ -67,6 +67,12 @@ BSE_FLAG=on
 else ifeq ($(se_mode),bseEmp)
 MT_FLAGS += -D BSEEMP -D BSE_BASE
 BSE_FLAG=on
+else ifeq ($(se_mode),cosmic)
+MT_FLAGS += -D COSMIC -D BSE_BASE
+BSE_FLAG=on
+else ifeq ($(se_mode),metisse)
+MT_FLAGS += -D METISSE -D BSE_BASE
+BSE_FLAG=on
 endif
 ifeq ($(BSE_FLAG),on)
 FCLIBS = @FCLIBS@

@@ -87,7 +87,6 @@ extern "C" {
 
     extern struct{
         int ceflag; ///> common envelope model
-        int ce2stageflag; ///> two-stage common envelope formalism
         int tflag;  ///> tidal circularization 
         int ifflag; ///> if > 0 uses WD IFMR of HPE, 1995, MNRAS, 272, 800 (0).  (not work any more)
         int nsflag; ///> NS/BH formation
@@ -188,7 +187,6 @@ extern "C" {
 
     extern struct{
         int ceflag; ///> common envelope model (0 normally)
-        int ce2stageflag; ///> two-stage common envelope formalism
         int tflag;  ///> tidal circularization (1 normally)
         int ifflag; ///> if > 0 uses WD IFMR of HPE, 1995, MNRAS, 272, 800 (0).  (not work any more)
         int nsflag; ///> NS/BH formation (3 normally Delayed)
@@ -249,6 +247,158 @@ extern "C" {
 
     void printconst_();
 }
+
+#elif (defined COSMIC) || (defined METISSE)
+extern "C" {
+    extern struct{
+        int tflag;  ///> Tidal circularization (1).
+        int ifflag;  ///> Initial-final WD mass relation (1).
+        int remnantflag;  ///> Remnant mass prescription (4).
+        int wdflag;  ///> Alternate cooling law (1).
+        int bhflag;  ///> SN kicks to BHs (1).
+        int windflag;  ///> Wind mass loss (3).
+        int qcflag;  ///> Critical mass ratios (5).
+        int eddlimflag;  ///> Z-dependent mass loss for stars near Eddington limit (0).
+        int bhspinflag;  ///> Remnant spin (0).
+        int aic;  ///> Accretion induced collapse SN natal kicks (1).
+        int rejuvflag;  ///> Mixing of MS stars (0).
+        int htpmb;  ///> Magnetic braking (1).
+        int ST_cr;  ///> StarTrack setup for convective vs radiative boundaries (1).
+        int ST_tide;  ///> StarTrack setup for tides (1).
+        int bdecayfac;  ///> Accretion induced field decay (1).
+        int grflag;  ///> Orbital decay due to GWs (1).
+        int bhms_coll_flag;  ///> Destroy stars in BH+star collisions (0).
+        int wd_mass_lim;  ///> Apply max WD mass in merger induced collapse (1).
+        int rtmsflag;  ///> Calculate radius at the end of MS (0).
+        int maltsev_mode;  ///> Mode to use Maltsev remnant mass prescription (0).
+    } flags_;
+
+    extern struct{
+        double don_lim ;  ///> Mass loss rate through RLOF (-1).
+        double acc_lim ; ///> Accreted mass limit during RLOF (-1).
+        double smt_periastron_check ; ///> Check for contact at periastron during stable MT (0).
+    } mtvars_;
+
+    extern struct{
+        int ceflag;  ///> Sets initial orbital energy for CE evolution (1).
+        int ce2stageflag;  ///> Uses two-stage CE formalism (0).
+        int cekickflag;  ///> Mass and separation to use when SN during CE (2).
+        int cemergeflag;  ///> CE survivabiity of stars without core-envelope boundary (1).
+        int cehestarflag;  ///> RLOF with He donor and CO accretor (0).
+        int ussn;  ///> Reduce kicks for ultra-stripped SNe (1).
+    } ceflags_;
+
+    extern struct{
+        double zsun; ///> Value of solar metallicity (0.014).
+    } metvars_;
+
+    extern struct{
+        double neta; ///> Reimers mass-loss coefficient (0.5).
+        double bwind; ///> Binary enhanced mass loss parameter (0.0).
+        double hewind; ///> Helium star mass loss parameter (0.5).
+        double beta; ///> Wind velocity factor (0.125).
+        double xi; ///> Wind accretion efficiency factor (0.5).
+        double acc2; ///> Bondi-Hoyle wind accretion factor (1.5).
+        double epsnov; ///> Fraction of accreted matter retained in nova (0.001).
+        double eddfac; ///> Eddington limit factor for mass transfer (10).
+        double gamma; ///> Angular momentum for mass lost during RLOF (-2).
+        int LBV_flag; ///> Luminous Blue Variables (1).
+    } windvars_;
+
+    extern struct{
+//        double qcrit_array;  ///> User-defined critical mass ratios.
+        double alpha; ///> Common-envelope efficiency (1.0).
+        double lambda; ///> Angular momentum for mass lost during RLOF (-2).
+    } cevars_;
+
+    extern struct{
+        double bconst; ///> Magnetic field decay for pulsars (k, 3000).
+        double ck; ///> Magnetic field decay for pulsars (tau_b, 1000).
+    } magvars_;
+
+    extern struct{
+//        double natal_kick_array; ///> User input values for SN natal kicks.
+        double sigma; ///> Dispersion in Maxwellian dist of natal kicks (265.0).
+        double sigmadiv; ///> Modified ECSN kicks (-20.0).
+        double bhsigmafrac; ///> Fractional modification for BHs (1.0).
+        double polar_kick_angle; ///> Opening angle for SN kicks (90.0).
+        double pisn; ///> Pulsational pair-instability SNe (-2).
+        double ecsn; ///> Electron capture SNe and max He mass (2.25).
+        double ecsn_mlow; ///> Low end of ECSN masses (1.6).
+        double bhspinmag; ///> BH spins (0.0).
+        double mxns; ///> NS-BH boundary (3.0).
+        double rembar_massloss; ///> Mass conversion in collapse (0.5).
+        double mm_mu_ns; ///> NS kick factor if kickflag=6 (400.0).
+        double mm_mu_bh; ///> BH kick factor if kickflag=6 (200.0).
+        double maltsev_fallback; ///> Fallback fraction if remnantflag=6 (0.5).
+        double maltsev_pf_prob; ///> Probability of partial fallback if remnantflag=6 (0.1).
+        int kickflag; ///> Natal kick prescription (5).
+        int fryer_mass_limit; ///> Mass limit when remnantflag=3 or 4 (0).
+        double ppi_co_shift; ///> Shifts CO core mass thresholds for ppisn (0.0).
+        double ppi_extra_ml; ///> Extra mass lost during ppisn (0.0).
+        double fryer_fmix; ///> Mixing fraction if remnantflag=7 (1.0).
+        double fryer_mcrit_nsbh; ///> NS-BH boundary if remnantflag=7 (5.75).
+    } snvars_;
+
+//    extern struct{
+//        double fprimc_array; ///> Scaling factor for convecttive tides.
+//    } tidalvars__;
+
+      extern struct{
+          double rejuv_fac; ///> Mixing factor in MS star collisions (1.0).
+      } mixvars_;
+
+    extern struct{
+        double pts1;  ///> time step of MS (0.05)
+        double pts2;  ///> time step of GB, CHeB, AGB, HeGB (0.01)
+        double pts3;  ///> time step of HG, HeMS (0.02)
+    } points_;
+
+    extern struct{
+        int idum; ///> the random number seed used in the kick routine.
+    } rand1_;
+
+    extern struct{
+        int idum2;
+        int iy;
+        int ir[32];
+    } rand3_;
+
+    //! function for initial metallicity parameters
+    void zcnsts_(double* z, double* zpars);
+
+    //!function for collison matrix
+    void instar_();
+
+    //! function for evolving one star
+    void evolv1_(int* kw, double* mass, double* mt, double* r, double* lum, double* mc, double* rc, double* menv, double* renv, double* ospin,
+                 double* epoch, double* tm, double* tphys, double* tphysf, double* dtp, double* z, double* zpars, double (*kick_info)[17]);
+
+    //! function for evolving one binary
+    void evolv2_(int* kw, double* mass, double* tb, double* ecc, double* z, double* tphysf, double* dtp, double* mass0, double* rad, double* lum,
+                 double* massc, double* radc, double* menv, double* renv, double* ospin, double* B_0, double* bacc, double* tacc, double* epoch,
+                 double* tms, double* bhspin, double* tphys, double* zpars, double (*kick_info)[19]);
+
+    void star_(int* kw, double* mass, double* mt, double* tm, double* tn, double* tscls, double* lums, double* GB, double* zpars, double* dtm,
+		 int* id);
+
+    void deltat_(int* kw, double* age, double* tm, double* tn, double* tscls, double* dt, double* dtr, int* id);
+
+    void trdot_(int* kw, double* m0, double* mt, double* r, double* mc, double* rc, double* age, double* dt, double* dtr, double* zpars);
+
+    void trflow_(int* kw, double* m0, double* mt, double* r, double* mc, double* rc, double* age, double* dt, double* semi, double* ecc, double* zpars);
+
+    void mix_(double* m0, double* mt, double* age, int* kw, double* zpars, double* bhspin, double* dtm);
+
+    //void comenv_(double* m01, double* m1, double* mc1, double* aj1, double* jspin1, int* kw1,
+    //             double* m02, double* m2, double* mc2, double* aj2, double* jspin2, int* kw2,
+    //             double* zpars, double* ecc, double* sep, double* jorb, double* vkick1, double* vkick2, int* coel);
+
+    void merge_(int* kw, double* m0, double* mt, double* r, double* mc, double* rc, double* menv, double* renv, double* ospin, double* age, double* semi, double* ecc, double* vkick, double* zpars);
+
+    void printconst_();
+}
+
 #endif
 
 //! SSE/BSE based code star parameter for saving
@@ -267,6 +417,10 @@ struct StarParameter{
     double epoch;  ///> starting time of one evolution phase, age = tphys - epoch
     double tphys;  ///> physical evolve time in Myr
     double lum;    ///> Landmark luminosities 
+    double B_0;    ///> Neutron star magnetic field (COSMIC & METISSE)
+    double bacc;   ///> Pulsar mass accretion (COSMIC & METISSE)
+    double tacc;   ///> Pulsar accretion duration (COSMIC & METISSE)
+    double bhspin; ///> BH dimensionless spin magnitude (COSMIC & METISSE)
 
     //! initial zero age main sequence
     /*!
@@ -628,7 +782,15 @@ public:
     IOParams<double> lambda;
     IOParams<double> beta;
     IOParams<double> xi;
+#if (defined COSMIC) || (defined METISSE)
+    IOParams<long long int> windflag;
+    IOParams<long long int> eddlimflag;
+    IOParams<double> acc2;
+    IOParams<double> zsun;
+    IOParams<long long int> LBV_flag;
+#else
     IOParams<double> bhwacc;
+#endif
     IOParams<double> epsnov;
     IOParams<double> eddfac;
     IOParams<double> gamma;
@@ -640,18 +802,68 @@ public:
     IOParams<double> sigma2;
 #endif
     IOParams<long long int> ceflag;
-    IOParams<long long int> ce2stageflag;
     IOParams<long long int> tflag;
     //IOParams<long long int> ifflag;
     IOParams<long long int> wdflag;
     IOParams<long long int> bhflag;
-    IOParams<long long int> nsflag;
 #if (defined BSEBBF) || (defined BSEEMP)
+    IOParams<long long int> nsflag;
     IOParams<long long int> psflag;
     IOParams<long long int> kmech;
     IOParams<long long int> ecflag;
 #elif MOBSE
+    IOParams<long long int> nsflag;
     IOParams<long long int> piflag;
+#elif (defined COSMIC) || (defined METISSE)
+    IOParams<long long int> ce2stageflag;
+    IOParams<long long int> cekickflag;
+    IOParams<long long int> cemergeflag;
+    IOParams<long long int> cehestarflag;
+    IOParams<long long int> qcflag;
+//  IOParams<double> qcrit_array;
+    IOParams<long long int> kickflag;
+    IOParams<double> sigma;
+    IOParams<double> bhsigmafrac;
+    IOParams<double> sigmadiv;
+    IOParams<double> ecsn;
+    IOParams<double> ecsn_mlow;
+    IOParams<long long int> aic;
+    IOParams<long long int> ussn;
+    IOParams<double> polar_kick_angle;
+//  IOParams<double> natal_kick_array;
+    IOParams<double> mm_mu_ns;
+    IOParams<double> mm_mu_bh;
+    IOParams<long long int> remnantflag;
+    IOParams<double> fryer_mass_limit;
+    IOParams<double> mxns;
+    IOParams<double> fryer_fmix;
+    IOParams<double> fryer_mcrit_nsbh;
+    IOParams<double> rembar_massloss;
+    IOParams<long long int> wd_mass_lim;
+    IOParams<long long int> maltsev_mode;
+    IOParams<double> maltsev_fallback;
+    IOParams<double> maltsev_pf_prob;
+    IOParams<double> pisn;
+    IOParams<double> ppi_co_shift;
+    IOParams<double> ppi_extra_ml;
+    IOParams<long long int> bhspinflag;
+    IOParams<double> bhspinmag;
+    IOParams<long long int> grflag;
+    IOParams<double> don_lim;
+    IOParams<double> acc_lim;
+    IOParams<long long int> smt_periastron_check;
+    IOParams<long long int> ST_tide;
+//  IOParams<double> fprimc_array;
+    IOParams<long long int> ifflag;
+    IOParams<long long int> bdecayfac;
+    IOParams<double> bconst;
+    IOParams<double> ck;
+    IOParams<double> rejuv_fac;
+    IOParams<long long int> rejuvflag;
+    IOParams<long long int> bhms_coll_flag;
+    IOParams<long long int> htpmb;
+    IOParams<long long int> ST_cr;
+    IOParams<long long int> rtmsflag;
 #endif
     IOParams<double> pts1;
     IOParams<double> pts2;
@@ -683,13 +895,12 @@ public:
                    eddfac(input_par_store, 1.0,   "bse-eddfac", "Eddington limit factor for mass transfer"),
                    gamma (input_par_store, -1.0,  "bse-gamma",  "Angular momentum factor for mass lost during Roche"),
                    sigma (input_par_store, 265.0, "bse-sigma",  "Dispersion in the Maxwellian for the SN kick speed [km/s]"),
-                   ceflag(input_par_store, 0,     "bse-ceflag", "if =3, activates de Kool common-envelope model"),
-                   ce2stageflag(input_par_store, 0, "bse-ce2stageflag", "if =1, activates Hirai & Mandel two-stage common-envelope formalism"),
+                   ceflag      (input_par_store, 0, "bse-ceflag", "if =3, activates de Kool common-envelope model"),
                    tflag (input_par_store, 1,     "bse-tflag",  "if >0, activates tidal circularisation"),
                    //ifflag(input_par_store, 2,   "bse-ifflag", "if > 0 uses WD IFMR of HPE, 1995, MNRAS, 272, 800"),
                    wdflag(input_par_store, 1,     "bse-wdflag", "if >0, uses WD IFMR of HPE, 1995, MNRAS, 272, 800"),
                    bhflag(input_par_store, 2,     "bse-bhflag", "BH kick option: 0: no kick; 1: same as NS; 2: scaled by fallback"),
-                   nsflag(input_par_store, 3,     "bse-nsflag", "NS/BH foramtion options: 0: original SSE; 1: Belczynski (2002); 2: Belczynski (2008); 3: Fryer (2012) rapid SN; 4: Fryer (2012) delayed SN; 5: Eldridge & Tout (2004)"),
+                   nsflag(input_par_store, 3,     "bse-nsflag", "NS/BH formation options: 0: original SSE; 1: Belczynski (2002); 2: Belczynski (2008); 3: Fryer (2012) rapid SN; 4: Fryer (2012) delayed SN; 5: Eldridge & Tout (2004)"),
                    psflag(input_par_store, 1,     "bse-psflag", "PPSN condition (Belczynski 2016): 0: no PPSN; 1: strong; (Leung 2019): 2: moderate; 3: weak"),
                    kmech (input_par_store, 1,     "bse-kmech",  "Kick mechanism: 1: standard momentum-conserving; 2: convection-asymmetry-driven; 3: collapse-asymmerty-driven; 4: neutrino driven"),
                    ecflag(input_par_store, 1,     "bse-ecflag", "if >0, ECS is switched on"),
@@ -727,7 +938,6 @@ public:
                    sigma1 (input_par_store, 265.0,  "mobse-sigma1", "Dispersion in the Maxwellian for the CCSN kick speed [km/s]"),
                    sigma2 (input_par_store, 265.0,  "mobse-sigma2", "Dispersion in the Maxwellian for the ECSN kick speed [km/s]"),
                    ceflag(input_par_store, 0,       "mobse-cflag",  "if =3, activates de Kool common-envelope model"),
-                   ce2stageflag(input_par_store, 0, "mobse-ce2stageflag", "if =1, activates Hirai & Mandel two-stage common-envelope formalism"),
                    tflag (input_par_store, 1,       "mobse-tflag",  "if >0, activates tidal circularisation"),
                    //ifflag(input_par_store, 2,   "if > 0 uses WD IFMR of HPE, 1995, MNRAS, 272, 800"),
                    wdflag(input_par_store, 1,       "mobse-wdflag", "if >0, uses WD IFMR of HPE, 1995, MNRAS, 272, 800"),
@@ -747,6 +957,86 @@ public:
                    vscale(input_par_store, 1.0,     "mobse-vsclae",  "Velocity scale factor from input data unit(IN) to km/s (v[km/s]=v[IN]*vscale)"),
                    z     (input_par_store, 0.001,   "mobse-metallicity",    "Metallicity"),
                    print_flag(false) {}
+#elif (defined COSMIC) || (defined METISSE)
+    IOParamsBSE(): input_par_store(),
+                   pts1  (input_par_store, 0.001, "cosmic-pts1",   "time step of MS"),
+                   pts2  (input_par_store, 0.01,  "cosmic-pts2",   "time step of GB, CHeB, AGB, HeGB"),
+                   pts3  (input_par_store, 0.02,  "cosmic-pts3",   "time step of HG, HeMS"),
+                   zsun(input_par_store, 0.014, "cosmic-zsun",        "Sets the value of solar metallicity"),
+                   z   (input_par_store, 0.001, "cosmic-metallicity", "Metallicity, only available at solar metallicity for now"),
+                   windflag  (input_par_store, 3,     "cosmmic-windflag",  "Options to model wind mass loss: -1: No wind mass loss; 0: Standard SSE; 1: StarTrack; 2: Z-dependent for O/B stars and WR stars following Vink (2001); 3: Same as 2 with LBV-like mass loss for giants; 5: Same as x0.33; 6: Bjorklund (2023); 7: Kritchkova (2024)"),
+                   eddlimflag(input_par_store, 0,     "cosmic-eddlimflag", "if =1 adjust Z-dependence for stars near Eddington limit as in Giaccobo (2018)"),
+                   neta      (input_par_store, 0.5,   "cosmic-neta",       "Reimers mass-loss coefficent [neta*4x10^-13]"),
+                   bwind     (input_par_store, 0.0,   "cosmic-bwind",      "Binary enhanced mass loss parameter; inactive for single"),
+                   hewind    (input_par_store, 1.0,   "cosmic-hewind",     "Helium star mass loss factor"),
+                   beta      (input_par_store, 0.125, "cosmic-beta",       "Wind velocity factor: proportional to vwind**2"),
+                   xi        (input_par_store, 1.0,   "cosmic-xi",         "Wind accretion efficiency factor"),
+                   acc2      (input_par_store, 1.5,   "cosmic-acc2",       "Bondi-Hoyle wind accretion factor"),
+                   LBV_flag  (input_par_store, 1,     "cosmic-LBV_flag",   "Options for LBV mass loss: 0: No LBV mass loss; 1: Hurley (2000); 2: Belczynski (2008)"),
+                   alpha       (input_par_store, 1.0, "cosmic-alpha1",       "Common-envelope efficiency parameter"),
+                   lambda      (input_par_store, 0.5, "cosmic-lambdaf",      "Binding energy factor for common envelope evolution"),
+                   ce2stageflag(input_par_store, 0,   "cosmic-ce2stageflag", "if =1, activates Hirai two-stage common envelope evolution"),
+                   ceflag      (input_par_store, 1,   "cosmic-ceflag",       "if =1, activates de Kool common-envelope model"),
+                   cekickflag  (input_par_store, 2,   "cosmic-cekickflag",   "Options for which mass and sep to use when SN during CE: 0: pre-CE mass and post-CE sep; 1: pre-CE mass and sep; 2: post-CE mass and sep"),
+                   cemergeflag (input_par_store, 1,   "cosmic-cemergeflag",  "if =1 stars without distinct core-envelope boundary automatically merge during CE"),
+                   cehestarflag(input_par_store, 0,   "cosmic-cehestarflag", "if =1 uses fitting formulae from Tauris (2015) for evolving RLO systems with a donor He star and accretor CO"),
+                   qcflag      (input_par_store, 5,   "cosmic-qcflag",       "Options to determine critical mass ratios for mass transfer stability: 0: Default BSE; 1: Same as 0 with Webbink (1987) for GB/AGB stars; 2: Claeys (2014); 3: Same as 2 with Webbink (1987) for GB/AGB stars; 4: Belczynski 2008; 5: Neijssel (2020) stripped stars always dynamically stable"),
+//                   qcrit_array (input_par_store, [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0], "User input values for critical mass ratios to set stability of mass transfer"),
+                   kickflag   (input_par_store, 5,     "cosmic-kickflag",    "Natal kicks options: 1: standard COSMIC; 2: scaled by ejecta and remnant masses following Giacobbo & Mapelli (2020); 3: scaled by ejecta mass only Giacobbo & Mapelli (2020); 4: Bray & Eldrige (2016); 5: correction of 1 following Disberg & Mandel (2025); 6: Mandel & Mueller (2020)"),
+                   sigma      (input_par_store, 265.0, "cosmic-sigma",       "Maxwellian dispersion for SN kicks"),
+                   bhflag(input_par_store, 1, "cosmic-bhflag", "BH kick option: 0: no kick; 1: scaled by fallback; 2: decreased by ratio of BH mass to NS mass; 3: same as NS"),
+                   bhsigmafrac(input_par_store, 1.0,   "cosmic-bhsigmafrac", "Fractional scaling down of sigma for BHs"),
+                   sigmadiv   (input_par_store, -20.0, "cosmic-sigmadiv",    "if <0 ECSN kicks drawn from Maxwellian dist with dispersion -sigmadiv"),
+                   ecsn       (input_par_store, 2.25,  "cosmic-ecsn",        "if >0 allows for election capture SN and sets max He-star mass"),
+                   ecsn_mlow  (input_par_store, 1.6,   "cosmic-ecsn",        "if >0 sets low end of ECSN mass range"),
+                   aic        (input_par_store, 1,     "cosmic-aic",         "Model for accreation induced SN natal kicks"),
+                   ussn       (input_par_store, 1,     "cosmic-ussn",        "if =1 USSN kicks redeuced according to sigmadiv"),
+                   polar_kick_angle(input_par_store, 90.0, "cosmic-polar_kick_angle", "Opening angle of the SN kicks"),
+//                   natal_kick_array(input_par_store, [[-100.0, -100.0, -100.0, -100.0, 0.0], [-100.0, -100.0, -100.0, -100.0, 0.0]], "cosmic-natal_kick_array", "User input values for the SN natal kicks"),
+                   mm_mu_ns   (input_par_store, 400.0, "cosmic-mm_mu_ns",    "NS kick scaling prefactor for kickflag=6"),
+                   mm_mu_bh   (input_par_store, 200.0, "cosmic-mm_mu_bh",    "BH kick scaling prefactor for kickflag=6"),
+                   remnantflag     (input_par_store, 4,   "cosmic-remnantflag",       "NS/BH formation options: 0: original SSE; 1: Belczynski (2002); 2: Belczynski (2008); 3: Fryer (2012) rapid; 4: Fryer (2012) delayed; 5: Mandel & Mueller (2020); 6: Maltsev (2025); 7: Fryer (2022)"),
+                   fryer_mass_limit(input_par_store, 0,   "cosmic-fryer_mass_limit",  "Sets the mass limit when applying a remnant mass prescription from Fryer+12 (only if remnantflag=3 or remnantflag=4)"),
+                   mxns            (input_par_store, 3.0,  "cosmic-mxns",             "Helium star mass loss factor"),
+                   fryer_fmix      (input_par_store, 1.0,  "cosmic-fryer_fmix",       "Mixing fraction for the SN model (remnantflag=7)"),
+                   fryer_mcrit_nsbh(input_par_store, 5.75, "cosmic-fryer_mcrit_nsbh", "Critical core mass (remnantflag=7)"),
+                   rembar_massloss (input_par_store, 0.5,  "cosic-rembar_massloss",   "Options to determine mass conversion during collapse of proto-compact object: >0: maxium amount of mass loss; -1<x<0: constant fraction of mass loss"),
+                   wd_mass_lim     (input_par_store, 1,    "cosmic-wd_mass_lim",      "if =1 max WD mass limited to Chandrasekhar mass during merger induced collapse"),
+                   maltsev_mode    (input_par_store, 0,   "cosmic-maltsev_mode",      "Mode to use in Maltsev remnant mass prescription (only if remnantflag=6)"),
+                   maltsev_fallback(input_par_store, 0.5, "cosmic-maltsev_fallback",  "Fallback fraction in Maltsev remnant mass prescription (only if remnantflag=6)"),
+                   maltsev_pf_prob (input_par_store, 0.1, "cosmic-maltsev_pf_prob",   "Probability of partial fallback in Maltsev remnant mass prescription (only if remnantflag=6)"),
+                   pisn            (input_par_store, -2,  "cosmic-pisn",              "(Pulsational) pair instability SN options: 0: no PISN; -1: formulae from Spera & Mapelli (2017); -2: polynomial fit to Table 1 in Marchant (2018); -3: polynomial fit to Table 5 in Woosley (2019); -4: top-down approach from Hendriks (2023); -5: Belczynski weak PISN pulsations"),
+                   ppi_co_shift    (input_par_store, 0.0, "cosmic-ppi_co_shift",      "Shifts the CO core mass thresholds for PPISN (only if pisn=-4)"),
+                   ppi_extra_ml    (input_par_store, 0.0, "cosmic-ppi_extra_ml",      "Extra mass loss applied to stars that go through PPISN (only if pisn=-4)"),
+                   bhspinflag(input_par_store, 0,   "cosmic-bhspinflag", "Options to set remnant spins: 0: all BH spins to bhspinmag; 1: random BH spin between 0 and bhspinmag; 2: core-mass dependent spin based on Belczynski (2017)"),
+                   bhspinmag (input_par_store, 0.0, "cosmic-bhspinmag",  "See bhspingflag"),
+                   grflag(input_par_store, 0, "cosmic-grflag", "if =1 turns on orbital decay due to GW"),
+                   eddfac              (input_par_store, 10.0,    "cosmic-eddfac",               "Eddington limit factor for mass transfer"),
+                   gamma               (input_par_store, -2.0,    "cosmic-gamma",                "Angular momentum factor for mass lost during RLOF"),
+                   don_lim             (input_par_store, -1,      "cosmic-don_lim",              "Options for mass loss rate through RLOF: -1: Hurley (2002); -2: Claeys (2014)"),
+                   acc_lim             (input_par_store, -1, "cosmic-acc_lim",              "Options to limit mass accreted during RLOF: -1: 10x accretor thermal rate for MS/HG/CHeB; -2: 1x accretor thermal rate for MS/HG/CHeB; -3: 10x accretor thermal rate for all stars; -4: 1x accretor thermal rate for all stars; 0.0: all mass is lost"),
+                   smt_periastron_check(input_par_store, 0,       "cosmic-smt_periastron_check", "if =1, check for contact at periastron during stable mass transfer"),
+                   tflag       (input_par_store, 1, "cosmic-tflag",   "if =1, activates tidal circularisation"),
+                   ST_tide     (input_par_store, 1, "cosmic-ST_tide", "if =1 activates StarTrack for tides"),
+//                   fprimc_array(input_par_store, [2.0/21.0,2.0/21.0,2.0/21.0,2.0/21.0,2.0/21.0,2.0/21.0,2.0/21.0,2.0/21.0,2.0/21.0,2.0/21.0,2.0/21.0,2.0/21.0,2.0/21.0,2.0/21.0,2.0/21.0,2.0/21.0], "cosmic-fprimc_array", "Scaling factors for convective tides"),
+                   ifflag(input_par_store, 1,     "cosmic-ifflag", "if =1 uses WD IFMR of HPE, 1995, MNRAS, 272, 800"),
+                   wdflag(input_par_store, 1,     "cosmic-wdflag", "if =1, activates an alternate cooling law"),
+                   epsnov(input_par_store, 0.001, "cosmic-epsnov", "The fraction of accreted matter retained in nova eruption"),
+                   bdecayfac(input_par_store, 1,    "cosmic-bdecayfac", "Options for accretion induced field decay: 0: exponential decay; 1: inverse decay"),
+                   bconst   (input_par_store, 3000, "cosmic-bconst",    "Magnetic field decay timescale for pulsars (sets k in Eq. 8)"),
+                   ck       (input_par_store, 1000, "cosmic-ck",        "Magnetic field decay timescale for pulsars (sets tau_b in Eq. 2)"),
+                   rejuv_fac     (input_par_store, 1.0, "cosmic-rejuv_fac",      "Sets mixing factor in MS collisions, Equation 80 in Hurley (2002)"),
+                   rejuvflag     (input_par_store, 0,   "cosmic-rejuvflag",      "if =1 modifies mixing times of MS stars"),
+                   bhms_coll_flag(input_par_store, 0,   "cosmic-bhms_coll_flag", "if =1 star not destroyed in a BH+star collision"),
+                   htpmb(input_par_store, 1, "cosmic-htpmb", "Options for magnetic braking: -1: No magnetic braking; 0: Standard BSE; 1: Taam (2003)"),
+                   ST_cr(input_par_store, 1, "cosmic-ST_cr", "if =1 activates StarTrack convective vs radiative boundaries"),
+                   rtmsflag(input_par_store, 0, "cosmic-rtmsflag", "Options to calculate radius at the end of MS: "),
+                   idum(input_par_store, 1234, "cosmic-idum", "Random number seed used by the kick routine"),
+                   tscale(input_par_store, 1.0,   "cosmic-tscale", "Time scale factor from input data unit (IN) to Myr (time[Myr]=time[IN]*tscale)"),
+                   rscale(input_par_store, 1.0,   "cosmic-rscale", "Radius scale factor from input data unit (IN) to Rsun (r[Rsun]=r[IN]*rscale)"),
+                   mscale(input_par_store, 1.0,   "cosmic-mscale", "Mass scale factor from input data unit (IN) to Msun (m[Msun]=m[IN]*mscale)"),
+                   vscale(input_par_store, 1.0,   "cosmic-vscale", "Velocity scale factor from input data unit(IN) to km/s (v[km/s]=v[IN]*vscale)"),
+                   print_flag(false) {}
 #endif
 
     //! reading parameters from GNU option API
@@ -759,15 +1049,23 @@ public:
     int read(int argc, char *argv[], const int opt_used_pre=0) {
         static int sse_flag=-1;
         const struct option long_options[] = {
-            {neta.key,   required_argument, &sse_flag, 0},  
-            {bwind.key,  required_argument, &sse_flag, 1},  
-            {hewind.key, required_argument, &sse_flag, 2},  
-          //{mxns.key,   required_argument, &sse_flag, 3}, 
+            {neta.key,   required_argument, &sse_flag, 0},
+            {bwind.key,  required_argument, &sse_flag, 1},
+            {hewind.key, required_argument, &sse_flag, 2},
+          //{mxns.key,   required_argument, &sse_flag, 3},
             {alpha.key,  required_argument, &sse_flag, 22},
             {lambda.key, required_argument, &sse_flag, 23},
             {beta.key,   required_argument, &sse_flag, 24},
             {xi.key,     required_argument, &sse_flag, 25},
+#if (defined COSMIC) || (defined METISSE)
+            {windflag.key, required_argument, &sse_flag, 30},
+            {eddlimflag.key, required_argument, &sse_flag, 31},
+            {acc2.key, required_argument, &sse_flag, 26},
+            {zsun.key, required_argument, &sse_flag, 32},
+            {LBV_flag.key, required_argument, &sse_flag, 33},
+#else
             {bhwacc.key, required_argument, &sse_flag, 26},
+#endif
             {epsnov.key, required_argument, &sse_flag, 27},
             {eddfac.key, required_argument, &sse_flag, 28},
             {gamma.key,  required_argument, &sse_flag, 29},
@@ -779,17 +1077,67 @@ public:
 #endif
           //{ifflag.key, required_argument, &sse_flag, 7},
             {ceflag.key, required_argument, &sse_flag, 6},
-            {ce2stageflag.key, required_argument, &sse_flag, 31},
             {tflag.key,  required_argument, &sse_flag, 7},
             {wdflag.key, required_argument, &sse_flag, 8},
-            {bhflag.key, required_argument, &sse_flag, 9}, 
-            {nsflag.key, required_argument, &sse_flag, 10}, 
+            {bhflag.key, required_argument, &sse_flag, 9},
 #if (defined BSEBBF) || (defined BSEEMP)
+            {nsflag.key, required_argument, &sse_flag, 10},
             {psflag.key, required_argument, &sse_flag, 11},
             {kmech.key,  required_argument, &sse_flag, 12},
             {ecflag.key, required_argument, &sse_flag, 13},
 #elif MOBSE
+            {nsflag.key, required_argument, &sse_flag, 10},
             {piflag.key, required_argument, &sse_flag, 11},
+#elif (defined COSMIC) || (defined METISSE)
+            {ce2stageflag.key, required_argument, &sse_flag, 34},
+            {cekickflag.key, required_argument, &sse_flag, 35},
+            {cemergeflag.key, required_argument, &sse_flag, 36},
+            {cehestarflag.key, required_argument, &sse_flag, 37},
+            {qcflag.key, required_argument, &sse_flag, 38},
+//	    {qcrit_array.key, required_argument, &sse_flag, 39},
+            {kickflag.key, required_argument, &sse_flag, 12},
+            {sigma.key, required_argument, &sse_flag, 4},
+            {bhsigmafrac.key, required_argument, &sse_flag, 40},
+            {sigmadiv.key,   required_argument, &sse_flag, 41},
+            {ecsn.key, required_argument, &sse_flag, 13},
+            {ecsn_mlow.key, required_argument, &sse_flag, 42},
+            {aic.key, required_argument, &sse_flag, 43},
+            {ussn.key, required_argument, &sse_flag, 44},
+            {polar_kick_angle.key, required_argument, &sse_flag, 45},
+//          {natal_kick_array.key, required_argument, &sse_flag, 46},
+            {mm_mu_ns.key, required_argument, &sse_flag, 47},
+            {mm_mu_bh.key, required_argument, &sse_flag, 48},
+            {remnantflag.key, required_argument, &sse_flag, 10},
+            {fryer_mass_limit.key, required_argument, &sse_flag, 49},
+            {mxns.key, required_argument, &sse_flag, 3},
+            {fryer_fmix.key, required_argument, &sse_flag, 50},
+            {fryer_mcrit_nsbh.key, required_argument, &sse_flag, 51},
+            {rembar_massloss.key, required_argument, &sse_flag, 52},
+            {wd_mass_lim.key, required_argument, &sse_flag, 53},
+            {maltsev_mode.key, required_argument, &sse_flag, 54},
+            {maltsev_fallback.key, required_argument, &sse_flag, 55},
+            {maltsev_pf_prob.key, required_argument, &sse_flag, 56},
+            {pisn.key, required_argument, &sse_flag, 11},
+            {ppi_co_shift.key, required_argument, &sse_flag, 57},
+            {ppi_extra_ml.key, required_argument, &sse_flag, 58},
+            {bhspinflag.key, required_argument, &sse_flag, 59},
+            {bhspinmag.key, required_argument, &sse_flag, 60},
+            {grflag.key, required_argument, &sse_flag, 61},
+            {don_lim.key, required_argument, &sse_flag, 62},
+            {acc_lim.key, required_argument, &sse_flag, 63},
+            {smt_periastron_check.key, required_argument, &sse_flag, 64},
+            {ST_tide.key, required_argument, &sse_flag, 65},
+//          {fprimc_array.key, required_argument, &sse_flag, 66},
+            {ifflag.key, required_argument, &sse_flag, 67},
+            {bdecayfac.key, required_argument, &sse_flag, 68},
+            {bconst.key, required_argument, &sse_flag, 69},
+            {ck.key, required_argument, &sse_flag, 70},
+            {rejuv_fac.key, required_argument, &sse_flag, 71},
+            {rejuvflag.key, required_argument, &sse_flag, 72},
+            {bhms_coll_flag.key, required_argument, &sse_flag, 73},
+            {htpmb.key, required_argument, &sse_flag, 74},
+            {ST_cr.key, required_argument, &sse_flag, 75},
+            {rtmsflag.key, required_argument, &sse_flag, 76},
 #endif
             {pts1.key,   required_argument, &sse_flag, 14},
             {pts2.key,   required_argument, &sse_flag, 15},       
@@ -831,17 +1179,13 @@ public:
                     if(print_flag) hewind.print(std::cout);
                     opt_used+=2;
                     break;
-                //case 3:
-                //    mxns.value = atof(optarg);
-                //    if(print_flag) mxns.print(std::cout);
-                //    break;
-#if (defined BSEBBF) || (defined BSEEMP)
-                case 4:
-                    sigma.value = atof(optarg);
-                    if(print_flag) sigma.print(std::cout);
-                    opt_used+=2;
+#if (defined COSMIC) || (defined METISSE)
+                case 3:
+                    mxns.value = atof(optarg);
+                    if(print_flag) mxns.print(std::cout);
                     break;
-#elif MOBSE
+#endif
+#if MOBSE
                 case 4:
                     sigma1.value = atof(optarg);
                     if(print_flag) sigma1.print(std::cout);
@@ -852,15 +1196,16 @@ public:
                     if(print_flag) sigma2.print(std::cout);
                     opt_used+=2;
                     break;
+#else
+		case 4:
+                    sigma.value = atof(optarg);
+                    if(print_flag) sigma.print(std::cout);
+                    opt_used+=2;
+                    break;
 #endif
                 case 6:
                     ceflag.value = atof(optarg);
                     if(print_flag) ceflag.print(std::cout);
-                    opt_used+=2;
-                    break;
-		case 31:
-                    ce2stageflag.value = atof(optarg);
-                    if(print_flag) ce2stageflag.print(std::cout);
                     opt_used+=2;
                     break;
                 case 7:
@@ -878,11 +1223,19 @@ public:
                     if(print_flag) bhflag.print(std::cout);
                     opt_used+=2;
                     break;
+#if (defined BSEBBF) || (defined BSEEMP) || (defined MOBSE)
                 case 10:
                     nsflag.value = atof(optarg);
                     if(print_flag) nsflag.print(std::cout);
                     opt_used+=2;
                     break;
+#elif (defined COSMIC) || (defined METISSE)
+		case 10:
+                    remnantflag.value = atof(optarg);
+                    if(print_flag) remnantflag.print(std::cout);
+                    opt_used+=2;
+                    break;
+#endif
 #if (defined BSEBBF) || (defined BSEEMP)
                 case 11:
                     psflag.value = atof(optarg);
@@ -903,6 +1256,22 @@ public:
                 case 11:
                     piflag.value = atof(optarg);
                     if(print_flag) piflag.print(std::cout);
+                    opt_used+=2;
+                    break;
+#elif (defined COSMIC) || (defined METISSE)
+		case 11:
+                    pisn.value = atof(optarg);
+                    if(print_flag) pisn.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 12:
+                    kickflag.value = atof(optarg);
+                    if(print_flag) kickflag.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 13:
+                    ecsn.value = atof(optarg);
+                    if(print_flag) ecsn.print(std::cout);
                     opt_used+=2;
                     break;
 #endif
@@ -966,11 +1335,19 @@ public:
                     if(print_flag) xi.print(std::cout);
                     opt_used+=2;
                     break;
+#if (defined BSEBBF) || (defined BSEEMP) || (defined MOBSE)
                 case 26:
                     bhwacc.value = atof(optarg);
                     if(print_flag) bhwacc.print(std::cout);
                     opt_used+=2;
                     break;
+#elif (defined COSMIC) || (defined METISSE)
+		case 26:
+                    acc2.value = atof(optarg);
+                    if(print_flag) acc2.print(std::cout);
+                    opt_used+=2;
+                    break;
+#endif
                 case 27:
                     epsnov.value = atof(optarg);
                     if(print_flag) epsnov.print(std::cout);
@@ -993,6 +1370,243 @@ public:
                     opt_used+=2;
                     break;
 #endif
+#if (defined COSMIC) || (defined METISSE)
+                case 30:
+                    windflag.value = atoi(optarg);
+                    if(print_flag) windflag.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 31:
+                    eddlimflag.value = atoi(optarg);
+                    if(print_flag) eddlimflag.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 32:
+                    zsun.value = atoi(optarg);
+                    if(print_flag) zsun.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 33:
+                    LBV_flag.value = atoi(optarg);
+                    if(print_flag) LBV_flag.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 34:
+                    ce2stageflag.value = atoi(optarg);
+                    if(print_flag) ce2stageflag.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 35:
+                    cekickflag.value = atoi(optarg);
+                    if(print_flag) cekickflag.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 36:
+                    cemergeflag.value = atoi(optarg);
+                    if(print_flag) cemergeflag.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 37:
+                    cehestarflag.value = atoi(optarg);
+                    if(print_flag) cehestarflag.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 38:
+                    qcflag.value = atoi(optarg);
+                    if(print_flag) qcflag.print(std::cout);
+                    opt_used+=2;
+                    break;
+//                case 39:
+//                    qcrit_array.value = atoi(optarg);
+//                    if(print_flag) qcrit_array.print(std::cout);
+//                    opt_used+=2;
+//                    break;
+                case 40:
+                    bhsigmafrac.value = atoi(optarg);
+                    if(print_flag) bhsigmafrac.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 41:
+                    sigmadiv.value = atoi(optarg);
+                    if(print_flag) sigmadiv.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 42:
+                    ecsn_mlow.value = atoi(optarg);
+                    if(print_flag) ecsn_mlow.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 43:
+                    aic.value = atoi(optarg);
+                    if(print_flag) aic.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 44:
+                    ussn.value = atoi(optarg);
+                    if(print_flag) ussn.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 45:
+                    polar_kick_angle.value = atoi(optarg);
+                    if(print_flag) polar_kick_angle.print(std::cout);
+                    opt_used+=2;
+                    break;
+//                case 46:
+//                    natal_kick_array.value = atoi(optarg);
+//                    if(print_flag) natal_kick_array.print(std::cout);
+//                    opt_used+=2;
+//                    break;
+                case 47:
+                    mm_mu_ns.value = atoi(optarg);
+                    if(print_flag) mm_mu_ns.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 48:
+                    mm_mu_bh.value = atoi(optarg);
+                    if(print_flag) mm_mu_bh.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 49:
+                    fryer_mass_limit.value = atoi(optarg);
+                    if(print_flag) fryer_mass_limit.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 50:
+                    fryer_fmix.value = atoi(optarg);
+                    if(print_flag) fryer_fmix.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 51:
+                    fryer_mcrit_nsbh.value = atoi(optarg);
+                    if(print_flag) fryer_mcrit_nsbh.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 52:
+                    rembar_massloss.value = atoi(optarg);
+                    if(print_flag) rembar_massloss.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 53:
+                    wd_mass_lim.value = atoi(optarg);
+                    if(print_flag) wd_mass_lim.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 54:
+                    maltsev_mode.value = atoi(optarg);
+                    if(print_flag) maltsev_mode.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 55:
+                    maltsev_fallback.value = atoi(optarg);
+                    if(print_flag) maltsev_fallback.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 56:
+                    maltsev_pf_prob.value = atoi(optarg);
+                    if(print_flag) maltsev_pf_prob.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 57:
+                    ppi_co_shift.value = atoi(optarg);
+                    if(print_flag) ppi_co_shift.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 58:
+                    ppi_extra_ml.value = atoi(optarg);
+                    if(print_flag) ppi_extra_ml.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 59:
+                    bhspinflag.value = atoi(optarg);
+                    if(print_flag) bhspinflag.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 60:
+                    bhspinmag.value = atoi(optarg);
+                    if(print_flag) bhspinmag.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 61:
+                    grflag.value = atoi(optarg);
+                    if(print_flag) grflag.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 62:
+                    don_lim.value = atoi(optarg);
+                    if(print_flag) don_lim.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 63:
+                    acc_lim.value = atoi(optarg);
+                    if(print_flag) acc_lim.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 64:
+                    smt_periastron_check.value = atoi(optarg);
+                    if(print_flag) smt_periastron_check.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 65:
+                    ST_tide.value = atoi(optarg);
+                    if(print_flag) ST_tide.print(std::cout);
+                    opt_used+=2;
+                    break;
+//                case 66:
+//                    fprimc_array.value = atoi(optarg);
+//                    if(print_flag) fprimc_array.print(std::cout);
+//                    opt_used+=2;
+//                    break;
+                case 67:
+                    ifflag.value = atoi(optarg);
+                    if(print_flag) ifflag.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 68:
+                    bdecayfac.value = atoi(optarg);
+                    if(print_flag) bdecayfac.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 69:
+                    bconst.value = atoi(optarg);
+                    if(print_flag) bconst.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 70:
+                    ck.value = atoi(optarg);
+                    if(print_flag) ck.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 71:
+                    rejuv_fac.value = atoi(optarg);
+                    if(print_flag) rejuv_fac.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 72:
+                    rejuvflag.value = atoi(optarg);
+                    if(print_flag) rejuvflag.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 73:
+                    bhms_coll_flag.value = atoi(optarg);
+                    if(print_flag) bhms_coll_flag.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 74:
+                    htpmb.value = atoi(optarg);
+                    if(print_flag) htpmb.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 75:
+                    ST_cr.value = atoi(optarg);
+                    if(print_flag) ST_cr.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 76:
+                    rtmsflag.value = atoi(optarg);
+                    if(print_flag) rtmsflag.print(std::cout);
+                    opt_used+=2;
+                    break;
+#endif
                 default:
                     break;
                 }
@@ -1011,6 +1625,10 @@ public:
                     std::string fbse_par = fname_par+".mobse"; 
 #elif BSEEMP
                     std::string fbse_par = fname_par+".bseEmp"; 
+#elif COSMIC
+                    std::string fbse_par = fname_par+".cosmic"; 
+#elif METISSE
+                    std::string fbse_par = fname_par+".metisse"; 
 #endif
                     FILE* fpar_in;
                     if( (fpar_in = fopen(fbse_par.c_str(),"r")) == NULL) {
@@ -1034,6 +1652,10 @@ public:
                     std::cout<<"MOBSE options:"<<std::endl;
 #elif BSEEMP
                     std::cout<<"BSEEMP options:"<<std::endl;
+#elif COSMIC
+		    std::cout<<"COSMIC options:"<<std::endl;
+#elif METISSE
+		    std::cout<<"METISSE options:"<<std::endl;
 #endif
                     input_par_store.printHelp(std::cout, 2, 10, 23);
                 }
@@ -1051,6 +1673,10 @@ public:
         if(print_flag) std::cout<<"----- Finish reading input options of MOBSE -----\n";
 #elif BSEEMP
         if(print_flag) std::cout<<"----- Finish reading input options of BSEEMP -----\n";
+#elif COSMIC
+        if(print_flag) std::cout<<"----- Finish reading input options of COSMIC -----\n";
+#elif METISSE
+        if(print_flag) std::cout<<"----- Finish reading input options of METISSE -----\n";
 #endif
 
         return opt_used;
@@ -1117,7 +1743,11 @@ public:
             fprintf(stderr,"Error: Cannot open file %s.\n", _fname);
             abort();
         }
+#if (defined COSMIC) || (defined METISSE)
+        fprintf(fin, "%d %d %d ", rand1_.idum, rand3_.idum2, rand3_.iy);
+#else
         fprintf(fin, "%d %d %d ", value3_.idum, rand3_.idum2, rand3_.iy);
+#endif
         for (int i=0; i<32; i++) fprintf(fin, "%d ", rand3_.ir[i]);
         fprintf(fin, "\n");
         fclose(fin);
@@ -1130,7 +1760,11 @@ public:
             std::cerr<<_fname<<" not found.\n";
         }
         else {
+#if (defined COSMIC) || (defined METISSE)
+            int rcount = fscanf(fin, "%d %d %d ", &rand1_.idum, &rand3_.idum2, &rand3_.iy);
+#else
             int rcount = fscanf(fin, "%d %d %d ", &value3_.idum, &rand3_.idum2, &rand3_.iy);
+#endif
             for (int i=0; i<32; i++) rcount += fscanf(fin, "%d ", &rand3_.ir[i]);
             if(rcount<35) {
                 std::cerr<<"Error: Data reading fails! requiring data number is 35, only obtain "<<rcount<<".\n";
@@ -1147,6 +1781,28 @@ public:
             <<"             ╔╦╗╔═╗╔╗ ╔═╗╔═╗\n"
             <<"             ║║║║ ║╠╩╗╚═╗║╣ \n"
             <<"             ╩ ╩╚═╝╚═╝╚═╝╚═╝\n"
+            <<"---------------------------------------"<<std::endl;
+            fout<<" Online document: https://mobse-webpage.netlify.app/\n"
+            <<std::endl;
+    }
+#elif COSMIC
+    //! print terminal Logo
+    static void printLogo(std::ostream & fout) {
+        fout<<"---------------------------------------\n"
+            <<"             ╔═╗╔═╗╔═╗╔╦╗╦╔═╗\n"
+            <<"             ║  ║ ║╚═╗║║║║║  \n"
+            <<"             ╚═╝╚═╝╚═╝╩ ╩╩╚═╝\n"
+            <<"---------------------------------------"<<std::endl;
+            fout<<" Online document: https://cosmic-popsynth.github.io/COSMIC/index.html\n"
+            <<std::endl;
+    }
+#elif METISSE
+    //! print terminal Logo
+    static void printLogo(std::ostream & fout) {
+        fout<<"---------------------------------------\n"
+            <<"             ╔╦╗╔═╗╔═╗╦╔═╗╔═╗╔═╗\n"
+            <<"             ║║║║╣  ║ ║╚═╗╚═╗║╣ \n"
+            <<"             ╩ ╩╚═╝ ╩ ╩╚═╝╚═╝╚═╝\n"
             <<"---------------------------------------"<<std::endl;
             fout<<" Online document: https://mobse-webpage.netlify.app/\n"
             <<std::endl;
@@ -1173,6 +1829,16 @@ public:
         fout<<"MOBSE: Giacobbo N., Mapelli M. & Spera M., 2018, MNRAS, 474, 2959\n";
         fout<<"\t \t (Online document: https://mobse-webpage.netlify.app/)"
             <<std::endl;
+#elif COSMIC
+        for (int i=0; i<offset; i++) fout<<" ";
+        fout<<"COSMIC: Breivik  K., Coughlin S., Zevin M., Rodriguez C.L. et al., 2020, APJ, 898, 71\n";
+        fout<<"\t \t (Online document: https://cosmic-popsynth.github.io/COSMIC/index.html)"
+            <<std::endl;
+#elif METISSE
+        for (int i=0; i<offset; i++) fout<<" ";
+        fout<<"METISSE: Agrawal P., Hurley J., Stevenson S., Szécsi D. & Flynn C., 2020, MNRAS, 497, 4549\n";
+        fout<<"\t \t (Online document: https://metisse.readthedocs.io/en/latest/index.html)"
+            <<std::endl;
 #endif
     }
     
@@ -1183,6 +1849,10 @@ public:
         return std::string(".sseEmp");
 #elif MOBSE
         return std::string(".mosse");
+#elif (defined COSMIC)
+        return std::string(".cosse");
+#elif (defined METISSE)
+        return std::string(".messe");
 #endif
     }
 
@@ -1193,6 +1863,10 @@ public:
         return std::string(".bseEmp");
 #elif MOBSE
         return std::string(".mobse");
+#elif COSMIC
+        return std::string(".cosmic");
+#elif METISSE
+        return std::string(".metisse");
 #endif
     }
 
@@ -1203,6 +1877,10 @@ public:
         return std::string("SSEEMP");
 #elif MOBSE
         return std::string("MOSSE");
+#elif COSMIC
+	return std::string("COSSE");
+#elif METISSE
+	return std::string("MESSE");
 #endif
     }
 
@@ -1213,6 +1891,10 @@ public:
         return std::string("BSEEMP");
 #elif MOBSE
         return std::string("MOBSE");
+#elif COSMIC
+        return std::string("COSMIC");
+#elif METISSE
+        return std::string("METISSE");
 #endif
     }
 
@@ -1239,49 +1921,110 @@ public:
 
     //! initial SSE/BSE based code global parameters
     void initial(const IOParamsBSE& _input, const bool _print_flag=false) {
-        // common block
+#if (defined BSEBBF) || (defined BSEEMP) || (defined MOBSE)      
         value1_.neta  = _input.neta.value;
         value1_.bwind = _input.bwind.value;
-        value1_.hewind= _input.hewind.value;
-
+        value1_.hewind =_input.hewind.value;
         value2_.alpha  = _input.alpha.value;
         value2_.lambda = _input.lambda.value;
-
-#if (defined BSEBBF) || (defined BSEEMP)        
-        value4_.sigma  = _input.sigma.value;
-#elif MOBSE
-        value4_.sigma1  = _input.sigma1.value;
-        value4_.sigma2  = _input.sigma2.value;
-#endif
         value4_.mxns  = 1.8;
-#if (defined BSEBBF) || (defined BSEEMP)        
-        if (_input.nsflag.value>0) value4_.mxns = 2.5;
-#elif MOBSE
-        if (_input.nsflag.value>0) value4_.mxns = 3.0;
-#endif
         value4_.bhflag = _input.bhflag.value;
-
         value5_.beta = _input.beta.value;
         value5_.xi   = _input.xi.value;
         value5_.bhwacc = _input.bhwacc.value;
         value5_.epsnov = _input.epsnov.value;
         value5_.eddfac = _input.eddfac.value;
         value5_.gamma  = _input.gamma.value;
-
         flags_.ceflag = _input.ceflag.value;
-        flags_.ce2stageflag = _input.ce2stageflag.value;
         flags_.tflag  = _input.tflag.value;
         //flags_.ifflag = _input.ifflag.value;
         flags_.wdflag = _input.wdflag.value;
         flags_.nsflag = _input.nsflag.value;
-#if (defined BSEBBF) || (defined BSEEMP)
+        value3_.idum = (_input.idum.value>0)? -_input.idum.value: _input.idum.value;
+#elif (defined COSMIC) || (defined METISSE)        
+        flags_.tflag = _input.tflag.value;
+        flags_.ifflag = _input.ifflag.value;
+        flags_.remnantflag = _input.remnantflag.value;
+        flags_.wdflag = _input.wdflag.value;
+        flags_.bhflag = _input.bhflag.value;
+        flags_.windflag = _input.windflag.value;
+        flags_.qcflag = _input.qcflag.value;
+        flags_.eddlimflag = _input.eddlimflag.value;
+        flags_.bhspinflag = _input.bhspinflag.value;
+        flags_.aic = _input.aic.value;
+        flags_.rejuvflag = _input.rejuvflag.value;
+        flags_.htpmb = _input.htpmb.value;
+        flags_.ST_cr = _input.ST_cr.value;
+        flags_.ST_tide = _input.ST_tide.value;
+        flags_.bdecayfac = _input.bdecayfac.value;
+        flags_.grflag = _input.grflag.value;
+        flags_.bhms_coll_flag = _input.bhms_coll_flag.value;
+        flags_.wd_mass_lim = _input.wd_mass_lim.value;
+        flags_.rtmsflag = _input.rtmsflag.value;
+        flags_.maltsev_mode = _input.maltsev_mode.value;
+        mtvars_.don_lim = _input.don_lim.value;
+        mtvars_.acc_lim= _input.acc_lim.value;
+        mtvars_.smt_periastron_check = _input.smt_periastron_check.value;
+        ceflags_.ceflag = _input.ceflag.value;
+        ceflags_.ce2stageflag = _input.ce2stageflag.value;
+        ceflags_.cekickflag = _input.cekickflag.value;
+        ceflags_.cemergeflag = _input.cemergeflag.value;
+        ceflags_.cehestarflag = _input.cehestarflag.value;
+        ceflags_.ussn = _input.ussn.value;
+        metvars_.zsun = _input.zsun.value;
+        windvars_.neta  = _input.neta.value;
+        windvars_.bwind = _input.bwind.value;
+        windvars_.hewind =_input.hewind.value;
+        windvars_.beta  = _input.beta.value;
+        windvars_.xi  = _input.xi.value;
+        windvars_.acc2  = _input.acc2.value;
+        windvars_.epsnov = _input.epsnov.value;
+        windvars_.eddfac = _input.eddfac.value;
+        windvars_.gamma = _input.gamma.value;
+        windvars_.LBV_flag = _input.LBV_flag.value;
+        cevars_.alpha  = _input.alpha.value;
+        cevars_.lambda = _input.lambda.value;
+        magvars_.bconst = _input.bconst.value;
+        magvars_.ck = _input.ck.value;
+//        snvars_.natal_kick_array = _input.natal_kick_array.value;
+        snvars_.sigma = _input.sigma.value;
+        snvars_.sigmadiv = _input.sigmadiv.value;
+        snvars_.bhsigmafrac = _input.bhsigmafrac.value;
+        snvars_.polar_kick_angle = _input.polar_kick_angle.value;
+        snvars_.pisn = _input.pisn.value;
+        snvars_.ecsn = _input.ecsn.value;
+        snvars_.ecsn_mlow = _input.ecsn_mlow.value;
+        snvars_.bhspinmag = _input.bhspinmag.value;
+        snvars_.mxns = _input.mxns.value;
+        snvars_.rembar_massloss = _input.rembar_massloss.value;
+        snvars_.mm_mu_ns = _input.mm_mu_ns.value;
+        snvars_.mm_mu_bh = _input.mm_mu_bh.value;
+        snvars_.maltsev_fallback = _input.maltsev_fallback.value;
+        snvars_.maltsev_pf_prob = _input.maltsev_pf_prob.value;
+        snvars_.kickflag = _input.kickflag.value;
+        snvars_.fryer_mass_limit = _input.fryer_mass_limit.value;
+        snvars_.ppi_co_shift = _input.ppi_co_shift.value;
+        snvars_.ppi_extra_ml = _input.ppi_extra_ml.value;
+        snvars_.fryer_fmix = _input.fryer_fmix.value;
+        snvars_.fryer_mcrit_nsbh = _input.fryer_mcrit_nsbh.value;
+        mixvars_.rejuv_fac = _input.rejuv_fac.value;
+        rand1_.idum = (_input.idum.value>0)? -_input.idum.value: _input.idum.value;
+#endif       
+
+#if (defined BSEBBF) || (defined BSEEMP)        
+        value4_.sigma  = _input.sigma.value;
+        if (_input.nsflag.value>0) value4_.mxns = 2.5;
         flags2_.psflag = _input.psflag.value;
         flags2_.kmech  = _input.kmech.value;
         flags2_.ecflag = _input.ecflag.value;
 #elif MOBSE
+        value4_.sigma1  = _input.sigma1.value;
+        value4_.sigma2  = _input.sigma2.value;
+        if (_input.nsflag.value>0) value4_.mxns = 3.0;
         flags_.piflag = _input.piflag.value;
 #endif
 
+        // common block
         points_.pts1 = _input.pts1.value;
         points_.pts2 = _input.pts2.value;
         points_.pts3 = _input.pts3.value;
@@ -1303,12 +2046,11 @@ public:
             std::cerr<<"BSE warning! metallicity Z is not in (0.0001, 0.03); given value:"<<z<<std::endl;
         zcnsts_(&z, zpars);
 #endif
-        value3_.idum = (_input.idum.value>0)? -_input.idum.value: _input.idum.value;
 
-#ifdef PARTICLE_SIMULATOR_MPI_PARALLEL
+//#ifdef PARTICLE_SIMULATOR_MPI_PARALLEL
         // add off set to random seed to avoid repeating random numbers
-        value3_.idum += PS::Comm::getRank();
-#endif
+//        value3_.idum += PS::Comm::getRank();
+//#endif
 
         // collision matrix
         instar_();
@@ -1432,10 +2174,18 @@ public:
         _out.dm = _star.mt;
         _out.kw0 = _star.kw;
         int kw = _star.kw;
-        evolv1_(&kw, &_star.m0, &_star.mt, &_star.r, 
-                &_star.lum, &_star.mc, &_star.rc, &_out.menv, &_out.renv, 
-                &_star.ospin, &_star.epoch, 
+#if (defined COSMIC) || (defined METISSE)
+	double kick_info[2][17];
+	evolv1_(&kw, &_star.m0, &_star.mt, &_star.r,
+                &_star.lum, &_star.mc, &_star.rc, &_out.menv, &_out.renv,
+                &_star.ospin, &_star.epoch,
+                &_out.tm, &_star.tphys, &tphysf, &dtp, &z, zpars, kick_info);
+#else
+	evolv1_(&kw, &_star.m0, &_star.mt, &_star.r,
+                &_star.lum, &_star.mc, &_star.rc, &_out.menv, &_out.renv,
+                &_star.ospin, &_star.epoch,
                 &_out.tm, &_star.tphys, &tphysf, &dtp, &z, zpars, _out.vkick);
+#endif
         _star.kw = kw;
         _out.dm = _star.mt - _out.dm;
         _out.dtmiss = tphysf - _star.tphys;
@@ -1537,8 +2287,21 @@ public:
         rc[1] = _star2.rc;
         ospin[1] = _star2.ospin;
         epoch[1] = _star2.epoch;
-
-        evolv2_(kw, m0, mt, r, lum, mc, rc, menv, renv, ospin, epoch, tm, &tphys, &tphysf, &dtp, &z, zpars, &period_days, &_ecc, _bse_event.record[0], vkick);
+#if (defined COSMIC) || (defined METISSE)
+	double B_0[2],bacc[2],tacc[2],bhspin[2];
+	double kick_info[2][19];
+	B_0[0] = _star1.B_0;
+	B_0[1] = _star2.B_0;
+	bacc[0] = _star1.bacc;
+	bacc[1] = _star2.bacc;
+	tacc[0] = _star1.tacc;
+	tacc[1] = _star2.tacc;
+	bhspin[0] = _star1.bhspin;
+	bhspin[1] = _star2.bhspin;
+	evolv2_(kw, mt, &period_days, &_ecc, &z, &tphysf, &dtp, m0, r, lum, mc, rc, menv, renv, ospin, B_0, bacc, tacc, epoch, tm, bhspin, &tphys, zpars, kick_info);
+#else
+	evolv2_(kw, m0, mt, r, lum, mc, rc, menv, renv, ospin, epoch, tm, &tphys, &tphysf, &dtp, &z, zpars, &period_days, &_ecc, _bse_event.record[0], vkick);
+#endif
         _period = period_days/year_to_day/tscale;
 
         _star1.kw = kw[0];

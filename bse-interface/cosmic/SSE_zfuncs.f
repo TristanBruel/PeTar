@@ -1,6 +1,30 @@
 ***
+* New flag introduced (August 2023)
+* rtmsflag = 0 uses the SSE rtms for stars EXCEPT if M>200Msun 
+* and Z<0.0008(~0.04Zsun). For the exception, an extrapolation
+* is used (check the code in function rtmsf for details). This 
+* ad hoc extrapolation works well for stars with M < 4000Msun 
+* for Z >= 0.01Zsun. For lower metallicities, you may still run
+* into issues of rtms<0 for very massive stars (i.e. for Z<0.01Zsun
+* use at your own risk)
+*
+* rtmsflag > 0 uses rtms from simulation data (1=[BoOST], 2=[BPASS])
+* Only common metallicity cases between BoOST & BPASS are coded.
+*
+* BoOST metallicities = [1.1e-4, 2.1e-4, 1e-3, 2e-3] corresponding
+* to [dwarfD, IZw18, dwarfA, SMC] models (Szecsi et al. (2022))
+*
+* BPASS metallicities = [1e-4, *2e-4*, 1e-3, 2e-3]. 
+* NOTE : For BPASS, we used a power law to fit the rtms v/s mzams 
+* values for each metallicity. We have coded the best fit power-laws
+* for the above BPASS metallicities here.Since, Z = 2e-4 model is 
+* not available in the BPASS tracks, we assume the same rtms v/s 
+* mzams power law as Z=1e-4 for Z=2e-4.
+*
+***
       real*8 FUNCTION lzamsf(m)
-      implicit none
+      IMPLICIT NONE
+      INCLUDE 'const_bse.h'
       real*8 m,mx,a(200)
       common /MSCFF/ a
 *
@@ -26,7 +50,7 @@
       mx = SQRT(m)
       rzamsf = ((a(8)*m**2 + a(9)*m**6)*mx + a(10)*m**11 +
      &          (a(11) + a(12)*mx)*m**19)/
-     &         (a(13) + a(14)*m**2 + 
+     &         (a(13) + a(14)*m**2 +
      &          (a(15)*m**8 + m**18 + a(16)*m**19)*mx)
 *
       return
@@ -91,7 +115,7 @@
       common /MSCFF/ a
 *
 * A function to evaluate the lifetime to the end of the MS
-* hook ( for those models that have one ) as a fraction of 
+* hook ( for those models that have one ) as a fraction of
 * the lifetime to the BGB
 * Note that this function is only valid for M > Mhook.
 * (JH 24/11/97)
@@ -112,7 +136,7 @@
 *
       ltmsf = (a(27)*m**3 + a(28)*m**4 + a(29)*m**(a(32)+1.8d0))/
      &        (a(30) + a(31)*m**5 + m**a(32))
-* 
+*
       return
       end
 ***
@@ -205,7 +229,7 @@
       return
       end
 ***
-      real*8 FUNCTION rtmsf(m)
+      real*8 FUNCTION rtmssse(m)
       implicit none
       real*8 m,m2,rchk,a(200)
       common /MSCFF/ a
@@ -214,22 +238,218 @@
 *
 * A function to evaluate the radius at the end of the MS
 * Note that a safety check is added to ensure Rtms > Rzams
-* when extrapolating the function to low masses. 
+* when extrapolating the function to low masses.
 * (JH 24/11/97)
 *
       m2 = a(62) + 0.1d0
       if(m.le.a(62))then
          rchk = 1.5d0*rzamsf(m)
-         rtmsf = MAX(rchk,(a(52) + a(53)*m**a(55))/(a(54) + m**a(56)))
+         rtmssse = MAX(rchk,(a(52) + a(53)*m**a(55))/(a(54) + m**a(56)))
       elseif(m.ge.m2)then
-         rtmsf = (a(57)*m**3+a(58)*m**a(61)+a(59)*m**(a(61)+1.5d0))/
+         rtmssse = (a(57)*m**3+a(58)*m**a(61)+a(59)*m**(a(61)+1.5d0))/
      &           (a(60) + m**5)
       else
-         rtmsf = a(63) + ((a(64) - a(63))/0.1d0)*(m - a(62))
+         rtmssse = a(63) + ((a(64) - a(63))/0.1d0)*(m - a(62))
       endif
-* 
+*
       return
       end
+
+***
+*** NEW CODE BETWEEN THESE LINES (BEGIN)
+
+      real*8 FUNCTION rtmsf(m, met)
+      implicit none
+      INCLUDE 'const_bse.h'
+      real*8 m,met,Rtms200,Rtms199,slope
+      real*8 rtmssse, rtmsBoost, rtmsBpass
+      external rtmssse
+*
+* For Z < 0.04 Z_sun (i.e. Z < 0.0008) the polynomial fitting extrapolation of
+* Hurley et al. leads to negative stellar radii at the end of the main sequence.
+* This fix calculates the slope of the Rtms-M curve for a given Z at M=200 and
+* extrapolates the Rtms linearly for M>200Msun assuming the same slope. The fix
+* is only applied to stars with Z < 0.0008 and M > 200Msun
+*
+      if (rtmsflag .eq. 0) then
+*         print*,'inside cosmic conditional'
+         if( (m .le. 200.0) .OR. (met .ge. 0.0008) )then
+            rtmsf = rtmssse(m)
+         else
+            Rtms200 = rtmssse(DFLOAT(200))
+            Rtms199 =  rtmssse(DFLOAT(199))
+            slope = Rtms200 - Rtms199;
+            rtmsf = Rtms200 + slope*(m-200.0)
+*            print*,'RTMSF inside the else', met,m,Rtms200, Rtms199,
+*     &               slope,rtmsf
+         endif
+
+      elseif (rtmsflag .eq. 1) then
+*         print*,'inside Boost conditional'
+         rtmsf = rtmsBoost(m, met)
+
+      elseif (rtmsflag .eq. 2) then
+*         print*,'inside BPASS conditional'
+         rtmsf = rtmsBpass(m, met)
+
+      else
+         print*,'Specify a valid value of rtmsflag'
+
+      endif
+*      print*,'met, m, rtmsf, rtmsflag', met, m, rtmsf, rtmsflag
+      return
+      end
+*
+      real*8 FUNCTION interp(val, arrsize, arr1, arr2, extrapolate)
+          implicit none
+          character(*) extrapolate
+          integer j, idx_u, idx_l, arrsize
+          real*8 val, arr1(arrsize), arr2(arrsize), num, den, slp
+
+          if (arr1(1) .gt. val) then
+              idx_u = 2
+              idx_l = 1
+              num = (arr2(idx_u) - arr2(idx_l))
+              den = arr1(idx_u) - arr1(idx_l)
+              slp = num/den
+              interp = arr2(idx_l) - slp * (arr1(idx_l) - val)
+*              print*,'inside 1st if', interp, arr1(1), val
+          else
+              if (arr1(arrsize) .ge. val) then
+                  do j = 1, arrsize
+                      if (arr1(j) .ge. val) then
+*                      print*, 'arr1[j]', arr1(j)
+                      idx_u = j
+                      exit
+                      end if
+                  end do
+                  idx_l = idx_u - 1
+                  num = (arr2(idx_u) - arr2(idx_l))
+                  den = arr1(idx_u) - arr1(idx_l)
+                  slp = num/den
+                  interp = slp * (val - arr1(idx_l)) + arr2(idx_l)
+*                  print*,'inside else - if', num, den
+              else
+                  if (extrapolate == 'const') then
+                      interp = arr2(arrsize)
+*                      print*,'inside else - else - if'
+                  else
+                      idx_u = arrsize
+                      idx_l = idx_u - 1
+                      num = (arr2(idx_u) - arr2(idx_l))
+                      den = arr1(idx_u) - arr1(idx_l)
+                      slp = num/den
+                      interp = slp*(val - arr1(idx_u)) + arr2(idx_u)
+*                      print*,'inside else - else - else'
+                  endif
+              endif
+          endif
+      return
+      end FUNCTION interp
+****
+      real*8 FUNCTION rtmsBoost(m, met)
+      implicit none
+      external interp
+      real*8 m,met,met_cut1,met_cut2
+      real*8 interp, rzams, rtms
+      real*8 mBoost(10), RZBoost(10), RTBoost(10)
+      integer j, idx_l, idx_u
+      met_cut1 = 0.9*met
+      met_cut2 = 1.1*met
+*      print*, 'mass is ', m, LOG10(m)
+*      print*,'met_cut1, met_cut2 :', met_cut1, met_cut2
+*
+      if ( (1.1d-4 .ge. met_cut1) .and. (1.1d-4 .le. met_cut2) ) then
+         mBoost = (/9., 12., 19., 30., 40., 55., 80., 100.,250.,560./)
+         RZBoost = (/2.43392, 2.92073, 3.86161, 4.99635, 5.86427,
+     &      6.98092, 8.5704 , 9.68978, 16.1026 , 24.6849/)
+         RTBoost = (/6.68652, 8.35836, 12.2768, 19.1216, 26.1014,
+     &      34.7308, 50.2973, 63.3516, 696.887, 477.342/)
+*         print*,'inside if'
+*
+      elseif ((2.1d-4 .ge. met_cut1) .and. (2.1d-4 .le. met_cut2)) then
+         mBoost = (/9.0d0, 1.7d1, 2.0d1, 2.6d1, 4.5d1,
+     &     7.7d1, 1.0d2, 1.5d2, 2.57d2, 5.75d2/)
+         RZBoost = (/2.55385, 3.78012, 4.16676, 4.84233, 6.56514,
+     &      8.81132, 10.1899, 12.7489, 17.242, 26.9047/)
+         RTBoost = (/7.10581, 10.5842, 12.005, 17.6989, 31.5715,
+     &      57.746, 85.7318, 265.117, 381.817, 64.2087/)
+*         print*,'inside else if 1'
+*
+      elseif((1.05d-3 .ge. met_cut1) .and. (1.05d-3 .le. met_cut2))then
+         mBoost = (/9., 12., 19., 30., 40., 55., 100., 150.,250.,560./)
+         RZBoost = (/2.90528, 3.4664, 4.54792, 5.89715, 6.90964,
+     &     8.23824, 11.4877, 14.4754, 19.4907, 30.4307/)
+         RTBoost = (/8.34864, 10.3943, 13.3912, 22.0983, 33.0246,
+     &     67.575, 144.839, 152.163, 337.615, 226.371/)
+*         print*,'inside else if 2'
+*
+      elseif( (2.1d-3 .ge. met_cut1) .and. (2.1d-3 .le. met_cut2) )then
+         mBoost = (/9., 12., 15., 30., 40., 55., 100., 150.,250.,575./)
+         RZBoost = (/3.07199, 3.65601, 4.17698, 6.19243, 7.26206,
+     &      8.68025, 12.1746, 15.4243, 21.3749, 37.7439/)
+         RTBoost = (/9.12709, 11.3397, 11.9156, 25.9153, 42.9715,
+     &      153.085, 109.867, 241.077, 147.582, 195.808/)
+*         print*,'inside else if 3'
+      else
+         print*,'mass and Rtms data for the given metallicity is not
+     &      coded for the Boost models.'
+      endif
+*      print*,'mBoost is ', mBoost
+*      print*,'RZBoost is ', RZBoost
+*      print*,'RTBoost is ', RTBoost
+
+*
+*     We will interpolate in the log-log space.
+      rtms = 10**interp(LOG10(m), size(mBoost), LOG10(mBoost),
+     &                       LOG10(RTBoost), 'const')
+      rzams = 10**interp(LOG10(m), size(mBoost), LOG10(mBoost),
+     &                       LOG10(RZBoost), 'const')
+      if (rzams .gt. rtms) then
+          rtmsBoost = rzams
+      else
+          rtmsBoost = rtms
+      endif
+*      print*,'rtmsBoost, rzams, rtms are ', rtmsBoost, rzams, rtms, met
+      return
+      end
+      real*8 function rtmsBpass(m, met)
+      implicit none
+      real*8 m, met, r0, alpha, met_cut1, met_cut2
+
+      met_cut1 = 0.9*met
+      met_cut2 = 1.1*met
+
+      if ( (1.0d-4 .ge. met_cut1) .and. (1.0d-4 .le. met_cut2) ) then
+          r0 = 1.43077288d0
+          alpha = 6.2151019d-1
+
+      elseif ((2.0d-4 .ge. met_cut1) .and. (2.0d-4 .le. met_cut2)) then
+          r0 = 1.43077288d0
+          alpha = 6.2151019d-1
+
+      elseif ((1.0d-3 .ge. met_cut1) .and. (1.0d-3 .le. met_cut2)) then
+          r0 = 8.1088547d-1
+          alpha = 8.2732973d-1
+
+      elseif ((2.0d-3 .ge. met_cut1) .and. (2.0d-3 .le. met_cut2)) then
+          r0 = 4.8850513d-1
+          alpha = 9.7369477d-1
+
+      else
+         print*,'mass and Rtms data for the given metallicity is not
+     &      coded for the BPASS models.'
+         r0 = 0.0
+         alpha = 0.0
+
+      endif
+
+      rtmsBpass = r0*m**alpha
+
+      return
+      end function rtmsBpass
+
+*** NEW CODE BETWEEN THESE LINES (END)
 ***
       real*8 FUNCTION ralphf(m)
       implicit none
@@ -343,14 +563,14 @@
       real*8 m,a(200)
       common /GBCFF/ a
 *
-* A function to evaluate the luminosity at the end of the 
+* A function to evaluate the luminosity at the end of the
 * FGB ( for those models that have one )
 * Note that this function is only valid for LM & IM stars
 * (JH 24/11/97)
 *
       lbgbf = (a(1)*m**a(5) + a(2)*m**a(8))/
      &        (a(3) + a(4)*m**a(7) + m**a(6))
-* 
+*
       return
       end
 ***
@@ -369,7 +589,7 @@
       dg = a(7)*a(4)*m**(a(7)-1.d0) + a(6)*m**(a(6)-1.d0)
 *
       lbgbdf = (df*g - f*dg)/(g*g)
-* 
+*
       return
       end
 ***
@@ -416,7 +636,7 @@
 * (JH 24/11/97)
 *
       a1 = MIN(a(20)/m**a(21),a(22)/m**a(23))
-      rgbdf = a1*(a(18)*lum**(a(18)-1.d0) + 
+      rgbdf = a1*(a(18)*lum**(a(18)-1.d0) +
      &            a(17)*a(19)*lum**(a(19)-1.d0))
 *
       return
@@ -477,7 +697,7 @@
          a1 = a(31) + 5.d0*(a(32)-a(31))*(m-m1)
       endif
 *
-      ragbdf = a1*(a(18)*lum**(a(18)-1.d0) + 
+      ragbdf = a1*(a(18)*lum**(a(18)-1.d0) +
      &             a(17)*a4*lum**(a4-1.d0))
 *
       return
@@ -487,8 +707,8 @@
       implicit none
       real*8 m,m525
 *
-* A function to evaluate core mass at the end of the MS as a 
-* fraction of the BGB value, i.e. this must be multiplied by 
+* A function to evaluate core mass at the end of the MS as a
+* fraction of the BGB value, i.e. this must be multiplied by
 * the BGB value (see below) to give the actual core mass (JH 5/9/99)
 *
       m525 = m**(21.d0/4.d0)
@@ -804,8 +1024,8 @@
       implicit none
       real*8 m,lum,rx,lx,cm
 *
-* A function to evaluate Helium star radius on the Hertzsprung gap 
-* from its mass and luminosity. 
+* A function to evaluate Helium star radius on the Hertzsprung gap
+* from its mass and luminosity.
 *
       cm = 2.0d-03*m**(5.d0/2.d0)/(2.d0 + m**5)
       rhehgf = rx*(lum/lx)**0.2d0 + 0.02d0*(EXP(cm*lum) - EXP(cm*lx))
@@ -817,7 +1037,7 @@
       implicit none
       real*8 lum
 *
-* A function to evaluate Helium star radius on the giant branch. 
+* A function to evaluate Helium star radius on the giant branch.
 *
       rhegbf = 0.08d0*lum**(3.d0/4.d0)
 *
@@ -862,11 +1082,20 @@
       return
       end
 ***
-      real*8 FUNCTION vrotf(m)
+      real*8 FUNCTION vrotf(m,ST)
       implicit none
+      integer ST
       real*8 m
 *
-      vrotf = 330.d0*m**3.3d0/(15.d0 + m**3.45d0)
+      if(ST.gt.0)then
+         if(m.gt.6.35d0)then
+            vrotf = (10.d0*m**(-0.0354d0))/(0.0389d0+m**(-7.95d0))
+         else
+            vrotf = (13.4d0*m**(-0.12d0))/(0.0389d0+m**(-7.95d0))
+         endif
+      else
+         vrotf = 330.d0*m**3.3d0/(15.d0 + m**3.45d0)
+      endif
 *
       return
       end
@@ -962,3 +1191,47 @@
       return
       end
 ***
+      real*8 FUNCTION MLalpha(m,lum,kw)
+      implicit none
+      integer kw
+      real*8 m,lum,loggammae,gammae,Xh
+*
+* A function for calculating the alpha factor for metallicity-dependent
+* winds from Grafener et al. 2011
+* (MZ 04/08/19)
+*
+
+* First, determine the hydrogen fraction as in Graefener et al. 2011
+      if(kw.ge.7 .and. kw.lt.10)then
+*        WR stars
+         Xh = 0.d0
+      else
+*        Assume metallicities for different kstars
+         if(kw.eq.0 .or. kw.eq.1)then
+            Xh = 0.7d0
+         elseif(kw.eq.2)then
+            Xh = 0.6d0
+         elseif(kw.eq.3)then
+            Xh = 0.5d0
+         elseif(kw.eq.4)then
+            Xh = 0.4d0
+         elseif(kw.eq.5 .or. kw.eq.6)then
+            Xh = 0.2d0
+        endif
+      endif
+
+      loggammae = -4.813d0 + LOG10(1.d0+xh) + LOG10(lum) - LOG10(m)
+      gammae = 10.0d0**(loggammae)
+      if(gammae.gt.1d0)then
+         gammae = 1.d0
+      endif
+
+* calculate metallicity scaling parameter alpha
+      if(gammae.lt.(2.d0/3.d0))then
+         MLalpha = 0.85d0
+      elseif(gammae.ge.(2.d0/3.d0))then
+         MLalpha = 2.45d0 - (2.4d0 * gammae)
+      endif
+*
+      return
+      end
