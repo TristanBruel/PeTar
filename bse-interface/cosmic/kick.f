@@ -124,6 +124,8 @@
       real*8 mu_mm
       integer i
       logical ECSN_or_USSN
+
+      REAL*8 natal_kick_array(2,5)
 * Output
       logical output,disrupt,collide
 *
@@ -158,20 +160,29 @@
 * Set values for alpha and beta as in Bray & Eldridge 2016
       alphakick = 70.0d0
       betakick = 120.0d0
+* Set natal_kick_array
+      natal_kick_array(1,1) = -100.d0
+      natal_kick_array(1,2) = -100.d0
+      natal_kick_array(1,3) = -100.d0
+      natal_kick_array(1,4) = -100.d0
+      natal_kick_array(1,5) = -100.d0
+      natal_kick_array(2,1) = -100.d0
+      natal_kick_array(2,2) = -100.d0
+      natal_kick_array(2,3) = -100.d0
+      natal_kick_array(2,4) = -100.d0
+      natal_kick_array(2,5) = -100.d0
 
-      if(using_cmc.eq.0)then
 * check if we have supplied a randomseed for this SN from kick_info
 * already
-          if(natal_kick_array(sn,5).gt.0.d0)then
+      if(natal_kick_array(sn,5).gt.0.d0)then
 * if we have we need to run ran3 enough times until
 * we are at the same state of the random number generator
 * as we were before
-              do while (natal_kick_array(sn,5).ne.idum
+          do while (natal_kick_array(sn,5).ne.idum
      &                          .and.safety.le.20)
-                  xx = RAN3(idum)
-                  safety = safety + 1
-              end do
-          endif
+              xx = RAN3(idum)
+              safety = safety + 1
+          end do
       endif
 * save the current idum
       natal_kick_array(sn,5) = idum
@@ -298,9 +309,7 @@
 
 * save natal kick velocity in the kick_info array and natal_kick_array
       kick_info(sn,3) = vk
-      if(using_cmc.eq.0)then
-          natal_kick_array(sn,1) = vk
-      endif
+      natal_kick_array(sn,1) = vk
 
 * ----------------------------------------------------------------------
 * --------- Now input or draw supernova natal kick angles --------------
@@ -346,10 +355,8 @@
 *     natal_kick_array
       kick_info(sn,4) = phi*180/pi
       kick_info(sn,5) = theta*180/pi
-      if(using_cmc.eq.0)then
-          natal_kick_array(sn,2) = phi*180/pi
-          natal_kick_array(sn,3) = theta*180/pi
-      endif
+      natal_kick_array(sn,2) = phi*180/pi
+      natal_kick_array(sn,3) = theta*180/pi
 
 * create a vector for the natal kick
       natal_kick(1) = vk * cos_phi * cos_theta
@@ -486,9 +493,7 @@
 
 * Record the mean anomaly in the arrays
       kick_info(sn,6) = mean_anom * 180 / pi
-      if (using_cmc.eq.0) then
-         natal_kick_array(sn,4) = mean_anom * 180 / pi
-      endif
+      natal_kick_array(sn,4) = mean_anom * 180 / pi
 
 * ----------------------------------------------------------------------
 * -------- Split based on whether this kick disrupts the system --------
@@ -797,6 +802,8 @@
       real*8 semilatrec,cangleofdeath,angleofdeath,energy
       real*8 fallback,sigmahold,bound
       real*8 mean_mns,mean_mej,alphakick,betakick
+
+      REAL*8 natal_kick_array(2,5)
 * Output
       logical output,disrupt
 *
@@ -808,6 +815,17 @@
       safety = 0
       abskickflag = ABS(kickflag)
 
+* Set natal_kick_array
+      natal_kick_array(1,1) = -100.d0
+      natal_kick_array(1,2) = -100.d0
+      natal_kick_array(1,3) = -100.d0
+      natal_kick_array(1,4) = -100.d0
+      natal_kick_array(1,5) = -100.d0
+      natal_kick_array(2,1) = -100.d0
+      natal_kick_array(2,2) = -100.d0
+      natal_kick_array(2,3) = -100.d0
+      natal_kick_array(2,4) = -100.d0
+      natal_kick_array(2,5) = -100.d0
 * Set up empty arrays and constants
       do k = 1,3
          vs(k) = 0.d0
@@ -829,24 +847,20 @@
       betakick = 120.0d0
 
 * find whether this is the first or second supernova
-      if(using_cmc.eq.0)then
-          if(kick_info(1,1).eq.0) sn=1
-          if(kick_info(1,1).gt.0) sn=2
-      endif
+      if(kick_info(1,1).eq.0) sn=1
+      if(kick_info(1,1).gt.0) sn=2
 
-      if(using_cmc.eq.0)then
 * check if we have supplied a randomseed for this SN from kick_info
 * already
-          if(natal_kick_array(snstar,5).gt.0.d0)then
+      if(natal_kick_array(snstar,5).gt.0.d0)then
 * if we have we need to run ran3 enough times until
 * we are at the same state of the random number generator
 * as we were before
-              do while (natal_kick_array(snstar,5).ne.idum
-     &                          .and.safety.le.20)
-                  xx = RAN3(idum)
-                  safety = safety + 1
-              end do
-          endif
+          do while (natal_kick_array(snstar,5).ne.idum
+     &                      .and.safety.le.20)
+              xx = RAN3(idum)
+              safety = safety + 1
+          end do
       endif
 * save the current idum
       natal_kick_array(snstar,5) = idum
@@ -988,9 +1002,7 @@
 
 * save natal kick velocity in the kick_info array and natal_kick_array
       kick_info(sn,3) = vk
-      if(using_cmc.eq.0)then
-          natal_kick_array(snstar,1) = vk
-      endif
+      natal_kick_array(snstar,1) = vk
 * Before we randomly draw a phi and theta for the natal kick,
 * see if a pre-supplied set of phi/theta is passed
       if((natal_kick_array(snstar,2).ge.(-90.d0)).and.
@@ -1031,10 +1043,8 @@
 *     natal_kick_array
       kick_info(sn,4) = phi*180/pi
       kick_info(sn,5) = theta*180/pi
-      if(using_cmc.eq.0)then
-          natal_kick_array(snstar,2) = phi*180/pi
-          natal_kick_array(snstar,3) = theta*180/pi
-      endif
+      natal_kick_array(snstar,2) = phi*180/pi
+      natal_kick_array(snstar,3) = theta*180/pi
 
 * If the system is already disrupted, apply this kick only to the
 * exploding star, and skip ahead.
@@ -1119,9 +1129,7 @@
         kick_info(sn,15) = mu*180/pi
         kick_info(sn,16) = omega*180/pi
         kick_info(sn,6) = mm*180/pi
-        if(using_cmc.eq.0)then
-            natal_kick_array(snstar,4) = mm*180/pi
-        endif
+        natal_kick_array(snstar,4) = mm*180/pi
       elseif(sn.eq.2)then
 * MJZ - Here we calculate the total change in the orbital plane
 *       from both SN. Note that these angles mu and omega are in
@@ -1147,9 +1155,7 @@
           kick_info(sn,16) = ATAN(y_tilt/x_tilt)*180/pi
         endif
         kick_info(sn,6) = mm*180/pi
-        if(using_cmc.eq.0)then
-            natal_kick_array(snstar,4) = mm*180/pi
-        endif
+        natal_kick_array(snstar,4) = mm*180/pi
 
       endif
 

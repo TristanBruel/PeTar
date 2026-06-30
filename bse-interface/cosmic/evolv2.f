@@ -213,6 +213,9 @@
       LOGICAL switchedCE,disrupt
       integer err
 
+      REAL*8 qcrit_array(16)
+      REAL*8 fprimc_array(16)
+
 
 Cf2py intent(in) kstar
 Cf2py intent(in) mass
@@ -268,7 +271,6 @@ Cf2py intent(in,out) kick_info
       ngtv2 = -2.d0
       twopi = 2.d0*ACOS(-1.d0)
 
-      Mbh_initial = 0.d0
 
 
 * disrupt tracks if system get disrupted by a SN during the common
@@ -313,6 +315,10 @@ component.
 *
 * Initialize the parameters.
 *
+      do k = 1,16
+         qcrit_array(k) = 0.d0
+         fprimc_array(k) = 2.d0/21.d0
+      enddo
 
 
 *
@@ -525,10 +531,10 @@ component.
             dme = 2.08d-03*eddfac*(1.d0/(1.d0 + zpars(11)))*rad(3-k)
 * For BHs, follow Marchant et al. 2017
             if(kstar(3-k).eq.14)then
-               maxspinBH = 6.d0**(1.d0/2.d0) * Mbh_initial
+               maxspinBH = 6.d0**(1.d0/2.d0) * 0.0d0
                if(mass(3-k).lt.maxspinBH)then
                   etaBH = 1.d0 -
-     &    (1.d0 - (mass(3-k)/(3.d0*Mbh_initial))**(2.d0))**(1.d0/2.d0)
+     &    (1.d0 - (mass(3-k)/(3.d0*0.d0))**(2.d0))**(1.d0/2.d0)
                else
                   etaBH = 0.42
                endif
@@ -1441,10 +1447,10 @@ component.
             dme = 2.08d-03*eddfac*(1.d0/(1.d0 + zpars(11)))*rad(k)
 * For BHs, follow Marchant et al. 2017
             if(kstar(k).eq.14)then
-               maxspinBH = 6.d0**(1.d0/2.d0) * Mbh_initial
+               maxspinBH = 6.d0**(1.d0/2.d0) * 0.d0
                if(mass(k).lt.maxspinBH)then
                   etaBH = 1.d0 -
-     &    (1.d0 - (mass(k)/(3.d0*Mbh_initial))**(2.d0))**(1.d0/2.d0)
+     &    (1.d0 - (mass(k)/(3.d0*0.d0))**(2.d0))**(1.d0/2.d0)
                else
                   etaBH = 0.42
                endif
@@ -2004,10 +2010,10 @@ component.
  8    dme = 2.08d-03*eddfac*(1.d0/(1.d0 + zpars(11)))*rad(j2)*tb
 * For BHs, follow Marchant et al. 2017
       if(kstar(j2).eq.14)then
-         maxspinBH = 6.d0**(1.d0/2.d0) * Mbh_initial
+         maxspinBH = 6.d0**(1.d0/2.d0) * 0.d0
          if(mass(j2).lt.maxspinBH)then
             etaBH = 1.d0 -
-     &    (1.d0 - (mass(j2)/(3.d0*Mbh_initial))**(2.d0))**(1.d0/2.d0)
+     &    (1.d0 - (mass(j2)/(3.d0*0.d0))**(2.d0))**(1.d0/2.d0)
          else
             etaBH = 0.42
          endif
@@ -2901,10 +2907,10 @@ component.
             dme = 2.08d-03*eddfac*(1.d0/(1.d0 + zpars(11)))*rad(3-k)*tb
 * For BHs, follow Marchant et al. 2017
             if(kstar(3-k).eq.14)then
-               maxspinBH = 6.d0**(1.d0/2.d0) * Mbh_initial
+               maxspinBH = 6.d0**(1.d0/2.d0) * 0.d0
                if(mass(3-k).lt.maxspinBH)then
                   etaBH = 1.d0 -
-     &    (1.d0 - (mass(3-k)/(3.d0*Mbh_initial))**(2.d0))**(1.d0/2.d0)
+     &    (1.d0 - (mass(3-k)/(3.d0*0.d0))**(2.d0))**(1.d0/2.d0)
                else
                   etaBH = 0.42
                endif

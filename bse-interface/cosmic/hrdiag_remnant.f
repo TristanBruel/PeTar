@@ -17,7 +17,7 @@
 * output mt, kw, mc, mass,bhspin
 * common: mch, mxns,
 * ifflag,ecsn (or mc1), ecsn_low(mc2), bhspinflag,
-*  bhspinmag,  Mbh_initial
+*  bhspinmag
 
          mch = 1.44d0 !set here owing to AIC ECSN model.
 
@@ -113,10 +113,6 @@
 *        Black hole
 *
          mc = mt
-* Store the initial BH mass for calculating the ISCO later
-         if(Mbh_initial.eq.0)then
-            Mbh_initial = mt
-         endif
          lum = 1.0d-10
          r = 4.24d-06*mt
       endif
