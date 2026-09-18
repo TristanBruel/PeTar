@@ -1,0 +1,28 @@
+FC=gfortran
+CXX=g++
+FFLAGS = -g -O0 -fPIC -fallow-argument-mismatch
+CXXFLAGS = -D COSMIC -D BSE_BASE -g -O0 -std=c++11
+FCLIBS = -lgfortran -lm
+
+BSE_PATH=cosmic
+LIB=libbse_debug.a
+TEST=petar.cosmic_debug
+
+SRC_F := $(shell find $(BSE_PATH) -name '*.f' ! -name '[sb]se.f' ! -name 'mo[sb]se.f' ! -name 'popbin.f')
+OBJ_F := $(SRC_F:.f=.do)
+
+%.do: %.f
+	$(FC) $(FFLAGS) -c $< -o $@
+
+$(LIB): $(OBJ_F)
+	ar rcs $@ $^
+
+$(TEST): bse_test.cxx $(LIB) bse_interface.h
+	$(CXX) $(CXXFLAGS) $< -o $@ -L. -lbse_debug $(FCLIBS)
+
+all: $(TEST)
+
+clean:
+	rm -f $(OBJ_F) $(LIB) $(TEST)
+
+.PHONY: all clean

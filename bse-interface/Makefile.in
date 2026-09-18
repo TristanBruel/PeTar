@@ -14,6 +14,12 @@ else ifeq ($(se_mode),bseEmp)
 BSE_TEST=petar.bseEmp
 BSE_PATH=bseEmp
 CXXFLAGS = -D BSEEMP -D BSE_BASE
+else ifeq ($(se_mode),cosmic)
+BSE_TEST=petar.cosmic
+BSE_PATH=cosmic
+CXXFLAGS = -D COSMIC -D BSE_BASE
+# COSMIC Fortran sources have some legacy argument-type inconsistencies
+FFLAGS += -fallow-argument-mismatch
 endif
 
 

@@ -1,0 +1,32 @@
+se_mode=cosmic
+
+BSE_LIB=libbse.a
+BSE_TEST=petar.cosmic
+BSE_PATH=cosmic
+CXXFLAGS = -D COSMIC -D BSE_BASE
+
+TARGET: $(BSE_LIB) $(BSE_TEST) petar.get.init.binary
+
+FC=gfortran
+CXX=g++
+
+CXXFLAGS += -O2 -std=c++11
+FFLAGS += -O2 -fPIC -fallow-argument-mismatch
+FCLIBS = -lgfortran -lm
+
+VPATH=$(BSE_PATH)
+
+SRC:= $(shell find $(BSE_PATH) -type f  \( -iname '*.f' ! -iname '.*' ! -iname '[sb]se.f' ! -iname 'mo[sb]se.f' ! -iname 'popbin.f' \) )
+OBJ:= $(SRC:.f=.o)
+
+$(BSE_LIB): $(OBJ)
+	ar rcs $@ $^
+
+$(BSE_TEST): bse_test.cxx $(BSE_LIB) bse_interface.h
+	$(CXX) $(CXXFLAGS) $< -o $@ -L./ -lbse $(FCLIBS)
+
+petar.get.init.binary: get_init_binary_bse.sh
+	ln -sf $< $@
+
+clean:
+	rm -f $(BSE_PATH)/*.o $(BSE_PATH)/SSE/*.o *.o $(BSE_TEST) $(BSE_LIB)
