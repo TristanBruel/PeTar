@@ -90,11 +90,10 @@ subroutine METISSE_zcnsts(z, zpars, ierr)
             call read_metisse_input(infile, ierr)
             if (ierr /= 0) call stop_code
         case(COSMIC)
-             ! call get_COSMIC_input()
-            if (.not. allocated(filenames_he_in)) then
-                write(out_unit,*)"Switching to SSE formulae for helium stars "
-                use_sse_NHe = .true.
-            endif
+            ! Read track paths from the METISSEVARS COMMON block into module vars.
+            ! (When called from C/C++ via bse_interface.h, get_cosmic_input_() has
+            !  already been called before zcnsts, so METALLICITY_DIR/HE are set.)
+            call get_COSMIC_input()
         case(AMUSE)
             ! If AMUSE has not set METALLICITY_DIR, it will use the defaults from METISSE
             if (len(trim(amuse_metallicity_dir)) > 0) METALLICITY_DIR = amuse_metallicity_dir
@@ -128,7 +127,7 @@ subroutine METISSE_zcnsts(z, zpars, ierr)
         ! these file contain information about eep tracks, their metallicity
         ! and the format file
         
-        if (front_end /= COSMIC) then    
+        if (.true.) then    ! applies to all front-ends including COSMIC (directory-based loading)
             if (len(trim(METALLICITY_DIR))< 1) then
                 write(*,*) "METISSE error: METALLICITY_DIR/path_to_tracks is an empty string"
                 ierr = 1
@@ -188,42 +187,7 @@ subroutine METISSE_zcnsts(z, zpars, ierr)
     i_he_age = -1
     do i = nloop,1, -1
         select case(front_end)
-        case(COSMIC)
-            ! we won't read in any metallicity files
-            ! instead we will read in the format files and eeps 
-            ! directly with COSMIC and pass them to METISSE
-            if (i == 2) then
-                ! Naked helium stars
-                ! if (allocated(py_track_list_he)) then
-                    ! First get info on the properties of the track_list
-                    ! if (allocated(track_list)) deallocate(track_list)
-                    ! allocate(track_list(size(py_track_list_he)))
-                    ! track_list = py_track_list_he
-                    ! USE_DIR = METALLICITY_DIR_HE 
-                    call apply_cosmic_format_controls('He')
-                    call read_key_eeps_he()
-                    if (debug) print*, "key eeps for he stars", key_eeps_he
-                    call set_tracks_from_python_inputs(.true.)
-            else
-                ! Hydrogen rich stars
-                ! if (allocated(py_track_list)) then
-                    ! First get info on the properties of the track_list
-                    ! if (allocated(track_list)) deallocate(track_list)
-                    ! allocate(track_list(size(py_track_list)))
-                    ! track_list = py_track_list
-                    ! USE_DIR = METALLICITY_DIR
-                    call apply_cosmic_format_controls('H')
-                    call read_key_eeps()
-                    if (debug) print*, "key eeps", key_eeps   
-                    call set_tracks_from_python_inputs(.false.)
-                ! end if
-            endif
-            
-            num_tracks = size(xa)
-            if (debug) print*, "num_tracks", num_tracks
-            if (debug) print*, "tracks set by COSMIC"
-
-        case default
+        case default  ! COSMIC (directory-based) and all other front-ends
             !read the files explicitly
             !read metallicity related variables
             if (i == 2) then
