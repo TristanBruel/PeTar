@@ -360,6 +360,9 @@ extern "C" {
     // mix_: COSMIC adds bhspin(2) and dtm; used in place of missing merge_
     void mix_(double* m0, double* mt, double* age, int* kw, double* zpars,
               double* bhspin, double* dtm);
+
+    // print common block parameters (for debugging/info on startup)
+    void printconst_();
 }
 #endif
 
@@ -1726,6 +1729,7 @@ public:
         col_.bpp_ind = 0;
 
         if (_print_flag) {
+            printconst_();
             std::cout<<"z: "<<z<<" zpars: ";
             for (int i=0;i<20;i++) std::cout<<zpars[i]<<" ";
             std::cout<<std::endl;
