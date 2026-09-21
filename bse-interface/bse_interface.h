@@ -1780,6 +1780,17 @@ public:
             initialize_metisse_front_cmc_(); // sets front_end = COSMIC
         }
         zcnsts_(&z, zpars);
+        // Check that METISSE loaded tracks successfully (zpars will be all-zero on failure)
+        if (se_flags_.using_metisse) {
+            bool zpars_ok = false;
+            for (int i = 0; i < 20; i++) if (zpars[i] != 0.0) { zpars_ok = true; break; }
+            if (!zpars_ok) {
+                std::cerr << "COSMIC error: METISSE failed to load stellar tracks. "
+                          << "Check --cosmic-path-to-tracks and that the directory "
+                          << "contains *metallicity.in files.\n";
+                abort();
+            }
+        }
 
         // Random seed: COSMIC uses /RAND1/ idum1
         rand1_.idum1 = (_input.idum.value>0)? -_input.idum.value: _input.idum.value;
