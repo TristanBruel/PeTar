@@ -347,6 +347,9 @@ extern "C" {
     // Core routines
     void zcnsts_(double* z, double* zpars);
     void instar_();
+    // METISSE front-end initialisation (from METISSE_utils.f90)
+    void get_cosmic_input_();
+    void initialize_metisse_front_cmc_();
 
     // evolv1: kick_info is Fortran kick_info(2,19) -> C double kick_info[19][2]
     void evolv1_(int* kw, double* mass, double* mt, double* r, double* lum,
@@ -1763,6 +1766,11 @@ public:
             std::cerr<<"COSMIC warning! metallicity Z is not in (0.0001, 0.03); given value:"<<z<<std::endl;
         if (_input.use_metisse.value && _input.path_to_tracks.value.empty())
             std::cerr<<"COSMIC warning! use-metisse=1 but --cosmic-path-to-tracks is not set; METISSE initialisation will likely fail."<<std::endl;
+        // METISSE requires front_end and track paths to be set before zcnsts
+        if (se_flags_.using_metisse) {
+            get_cosmic_input_();           // copies METISSEVARS common → METISSE module vars
+            initialize_metisse_front_cmc_(); // sets front_end = COSMIC
+        }
         zcnsts_(&z, zpars);
 
         // Random seed: COSMIC uses /RAND1/ idum1
