@@ -17,21 +17,32 @@ CXXFLAGS = -D BSEEMP -D BSE_BASE
 else ifeq ($(se_mode),cosmic)
 BSE_TEST=petar.cosmic
 BSE_PATH=cosmic
-CXXFLAGS = -D COSMIC -D BSE_BASE
+# METISSE is vendored in cosmic/METISSE/ and always compiled with COSMIC
+CXXFLAGS = -D COSMIC -D BSE_BASE -D USE_METISSE
 # COSMIC Fortran sources have some legacy argument-type inconsistencies
 FFLAGS += -fallow-argument-mismatch
-# ── METISSE support ───────────────────────────────────────────────────────────
-# Set METISSE_PATH to the directory containing libmetisse.a and the METISSE
-# Fortran module (.mod) files.  Example:
-#   ./configure --with-interrupt=cosmic && make METISSE_PATH=/opt/metisse/lib
-# When unset (the default), the no-op stubs in metisse_stubs.f are used and
-# only the SSE back-end is available at runtime.
-METISSE_PATH ?=
-ifneq ($(METISSE_PATH),)
-CXXFLAGS  += -D USE_METISSE
-METISSE_LIBS = -L$(METISSE_PATH) -lmetisse
-FFLAGS    += -I$(METISSE_PATH)
-endif
+# ── Vendored METISSE free-form sources ────────────────────────────────────────
+METISSE_DIR = $(BSE_PATH)/METISSE
+# Ordered to satisfy module dependencies
+METISSE_SRC = \
+	$(METISSE_DIR)/track_support.f90 \
+	$(METISSE_DIR)/c_m_interface.f90 \
+	$(METISSE_DIR)/interp_support.f90 \
+	$(METISSE_DIR)/sse_support.f90 \
+	$(METISSE_DIR)/remnant_support.f90 \
+	$(METISSE_DIR)/z_support.f90 \
+	$(METISSE_DIR)/METISSE_miscellaneous.f90 \
+	$(METISSE_DIR)/comenv_lambda.f90 \
+	$(METISSE_DIR)/METISSE_zcnsts.f90 \
+	$(METISSE_DIR)/METISSE_star.f90 \
+	$(METISSE_DIR)/METISSE_hrdiag.f90 \
+	$(METISSE_DIR)/METISSE_deltat.f90 \
+	$(METISSE_DIR)/METISSE_mlwind.f90 \
+	$(METISSE_DIR)/METISSE_gntage.f90 \
+	$(METISSE_DIR)/METISSE_utils.f90
+METISSE_OBJ = $(METISSE_SRC:.f90=.o)
+METISSE_FFLAGS = -ffree-form -J$(METISSE_DIR) -I$(METISSE_DIR)
+# ─────────────────────────────────────────────────────────────────────────────
 endif
 
 
@@ -40,24 +51,29 @@ TARGET: $(BSE_LIB) $(BSE_TEST) petar.get.init.binary
 FC=@FC@
 CXX=@CXX@
 
-#FFLAGS = -O2 -Wall -finit-real=nan 
+#FFLAGS = -O2 -Wall -finit-real=nan
 CXXFLAGS += @CXXFLAGS@ @OPTFLAGS@ @OPENMP_CXXFLAGS@
 FFLAGS += @FCFLAGS@
 FCLIBS = @FCLIBS@
 #FFLIBS += @FLIBS@
-#FFLAGS= -g -O0 -Wall -finit-real=nan -fbounds-check
+#FFLAGS= -g -O2 -Wall -finit-real=nan -fbounds-check
 #CXXFLAGS= -g -O2 -Wall -std=c++11 -fbounds-check
 
 VPATH=$(BSE_PATH)
 
-SRC:= $(shell find $(BSE_PATH) -type f  \( -iname '*.f' ! -iname '.*' ! -iname '[sb]se.f' ! -iname 'mo[sb]se.f' ! -iname 'popbin.f' \) )
-# When the real METISSE library is linked, exclude the stubs to avoid duplicate symbols.
+# ── Fixed-form sources (.f) ───────────────────────────────────────────────────
 ifeq ($(se_mode),cosmic)
-ifneq ($(METISSE_PATH),)
-SRC := $(filter-out $(BSE_PATH)/metisse_stubs.f, $(SRC))
-endif
+# Use explicit find so metisse_stubs.f (replaced by vendored sources) is excluded
+SRC:= $(shell find $(BSE_PATH) -maxdepth 1 -type f \
+          \( -iname '*.f' ! -iname '.*' ! -iname '[sb]se.f' \
+             ! -iname 'mo[sb]se.f' ! -iname 'popbin.f' \
+             ! -iname 'metisse_stubs.f' \) )
+SRC += $(shell find $(BSE_PATH)/SSE -type f -iname '*.f' ! -iname '.*')
+else
+SRC:= $(shell find $(BSE_PATH) -type f  \( -iname '*.f' ! -iname '.*' ! -iname '[sb]se.f' ! -iname 'mo[sb]se.f' ! -iname 'popbin.f' \) )
 endif
 OBJ:= $(SRC:.f=.o)
+
 ifeq ($(se_mode),bseEmp)
 SRC:= $(shell find $(BSE_PATH)  \( -iname '*.f' ! -iname '.*' ! -iname '[sb]se.f' ! -iname 'mo[sb]se.f' ! -iname 'popbin.f' \) )
 OBJ:= $(SRC:.f=.o)
@@ -65,12 +81,15 @@ SRCCXX:= $(shell find $(BSE_PATH) -maxdepth 1 \( -iname '*.cpp' \) )
 OBJCXX:= $(SRCCXX:.cpp=.o)
 endif
 
+# ── METISSE pattern rule (free-form, writes .mod to METISSE_DIR) ──────────────
+$(METISSE_DIR)/%.o: $(METISSE_DIR)/%.f90
+	$(FC) $(FFLAGS) $(METISSE_FFLAGS) -c -o $@ $<
 
-$(BSE_LIB): $(OBJ) $(OBJCXX)
+$(BSE_LIB): $(OBJ) $(OBJCXX) $(METISSE_OBJ)
 	ar rcs $@ $^
 
 $(BSE_TEST): bse_test.cxx $(BSE_LIB) bse_interface.h
-	$(CXX) $(CXXFLAGS) $< -o $@ -L./ -lbse $(FCLIBS) $(METISSE_LIBS)
+	$(CXX) $(CXXFLAGS) $< -o $@ -L./ -lbse $(FCLIBS)
 
 petar.get.init.binary: get_init_binary_bse.sh
 	ln -sf $< $@
@@ -80,4 +99,5 @@ install:
 	install -m 755 $(BSE_TEST) petar.get.init.binary @prefix@/bin/
 
 clean:
-	rm -f $(BSE_PATH)/*.o *.o $(BSE_TEST) $(BSE_LIB)
+	rm -f $(BSE_PATH)/*.o $(BSE_PATH)/SSE/*.o $(METISSE_DIR)/*.o \
+	      $(METISSE_DIR)/*.mod *.o $(BSE_TEST) $(BSE_LIB)
