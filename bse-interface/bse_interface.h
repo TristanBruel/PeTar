@@ -1386,7 +1386,7 @@ public:
     double vscale; ///> velocity scaling factor from NB to km/s
     const double year_to_day; ///> year to day 
     const char* single_type[16]; ///> name of single type from SSE
-    const char* binary_type[14]; ///> name of binary type return from BSE evolv2, notice if it is -1, it indicate the end of record
+    const char* binary_type[17]; ///> name of binary type return from BSE evolv2, notice if it is -1, it indicate the end of record; COSMIC adds types 15 (Single_star1), 16 (Single_star2), 100 (Stopped), 101 (METISSE_error)
 
     BSEManager(): z(0.0), zpars{0}, 
 #ifdef BSEEMP
@@ -1407,9 +1407,26 @@ public:
                               "Coalescence",         //10
                               "Blue_straggler",      //11
                               "No_remain",           //12
-                              "Disrupt"              //13
+                              "Disrupt",             //13
+                              "Unset_14",            //14 (unused placeholder)
+                              "Single_star1",        //15 (COSMIC: 14+k, k=1 — star 1 goes single)
+                              "Single_star2"         //16 (COSMIC: 14+k, k=2 — star 2 goes single)
                               } {}
-    
+
+    //! Safe accessor for binary type name; returns "Unknown(N)" for out-of-range types (e.g. 100=Stopped, 101=METISSE_error)
+    const char* getBinaryTypeName(int type) const {
+        static const char* unknown_names[] = {
+            "Unknown",          // generic fallback
+            "Stopped",          // 100: ODE iteration limit
+            "METISSE_error"     // 101: METISSE internal error
+        };
+        if (type == 100) return unknown_names[1];
+        if (type == 101) return unknown_names[2];
+        int n = (int)(sizeof(binary_type)/sizeof(binary_type[0]));
+        if (type < 0 || type >= n) return unknown_names[0];
+        return binary_type[type];
+    }
+
 
     bool checkParams() {
         assert(z>0.0);
@@ -1870,7 +1887,7 @@ public:
         for (int k=0; k<nmax; k++) {
             int type = _bin_event.getType(k);
             if(type>0) {
-                _fout<<std::setw(16)<<binary_type[type];
+                _fout<<std::setw(16)<<getBinaryTypeName(type);
                 _bin_event.print(_fout, k);
                 _fout<<std::endl;
             }
@@ -1881,8 +1898,7 @@ public:
     //! print binary event one
     void printBinaryEventOne(std::ostream& _fout, const BinaryEvent& _bin_event, const int k) {
         int type = _bin_event.getType(k);
-        assert(type>=0&&type<14);
-        _fout<<std::setw(16)<<binary_type[type]<<" Init:  ";
+        _fout<<std::setw(16)<<getBinaryTypeName(type)<<" Init:  ";
         if (k==0) _bin_event.print(_fout, _bin_event.getEventIndexInit());
         else _bin_event.print(_fout, k-1);
         _fout<<"\n"<<std::setw(16)<<" "<<" Final: ";
@@ -1892,8 +1908,7 @@ public:
     //! print binary event one in column
     void printBinaryEventColumnOne(std::ostream& _fout, const BinaryEvent& _bin_event, const int k, const int _width=20, const bool print_type_name=true) {
         int type = _bin_event.getType(k);
-        assert(type>=0&&type<14);
-        if (print_type_name) _fout<<std::setw(16)<<binary_type[type];
+        if (print_type_name) _fout<<std::setw(16)<<getBinaryTypeName(type);
         _fout<<std::setw(_width)<<type;
         if (k==0) _bin_event.printColumn(_fout, _bin_event.getEventIndexInit(), _width);
         else _bin_event.printColumn(_fout, k-1, _width);
