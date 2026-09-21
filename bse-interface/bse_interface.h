@@ -301,9 +301,9 @@ extern "C" {
         double pts1, pts2, pts3;
     } points_;
 
-    // /RAND1/, /RAND3/ (rand3_ is the common block for ran3.f)
+    // /RAND1/ (seed passed to ran3), /RAND2/ (COSMIC names this RAND2 not RAND3)
     extern struct { int idum1; } rand1_;
-    extern struct { int idum2, iy, ir[32]; } rand3_;
+    extern struct { int idum2, iy, ir[32]; } rand2_;
 
     // /BINARY/ — Fortran bcm(50000,52), bpp(1000,52)
     // Column-major: binary_.bpp[col-1][row-1] == Fortran bpp(row, col)
@@ -1381,11 +1381,12 @@ public:
             abort();
         }
 #ifdef COSMIC
-        fprintf(fin, "%d %d %d ", rand1_.idum1, rand3_.idum2, rand3_.iy);
+        fprintf(fin, "%d %d %d ", rand1_.idum1, rand2_.idum2, rand2_.iy);
+        for (int i=0; i<32; i++) fprintf(fin, "%d ", rand2_.ir[i]);
 #else
         fprintf(fin, "%d %d %d ", value3_.idum, rand3_.idum2, rand3_.iy);
-#endif
         for (int i=0; i<32; i++) fprintf(fin, "%d ", rand3_.ir[i]);
+#endif
         fprintf(fin, "\n");
         fclose(fin);
     }
@@ -1398,11 +1399,12 @@ public:
         }
         else {
 #ifdef COSMIC
-            int rcount = fscanf(fin, "%d %d %d ", &rand1_.idum1, &rand3_.idum2, &rand3_.iy);
+            int rcount = fscanf(fin, "%d %d %d ", &rand1_.idum1, &rand2_.idum2, &rand2_.iy);
+            for (int i=0; i<32; i++) rcount += fscanf(fin, "%d ", &rand2_.ir[i]);
 #else
             int rcount = fscanf(fin, "%d %d %d ", &value3_.idum, &rand3_.idum2, &rand3_.iy);
-#endif
             for (int i=0; i<32; i++) rcount += fscanf(fin, "%d ", &rand3_.ir[i]);
+#endif
             if(rcount<35) {
                 std::cerr<<"Error: Data reading fails! requiring data number is 35, only obtain "<<rcount<<".\n";
                 abort();
