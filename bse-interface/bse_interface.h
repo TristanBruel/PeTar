@@ -322,6 +322,18 @@ extern "C" {
         double zsun;
     } metvars_;
 
+    // /METISSEVARS/ — METISSE front-end paths and options
+    // Fortran: CHARACTER*256 path_to_tracks, path_to_he_tracks
+    //          REAL*8 z_match_limit; LOGICAL METISSE_verbose
+    // Fortran CHARACTER*256 is space-padded, NOT null-terminated.
+    // Fortran LOGICAL maps to a 4-byte int in gfortran.
+    extern struct {
+        char path_to_tracks[256];
+        char path_to_he_tracks[256];
+        double z_match_limit;
+        int metisse_verbose;
+    } metissevars_;
+
     // /COL/ — bpp/bcm column selector (must be initialised before evolv2_)
     // Fortran: INTEGER n_col_bpp, col_inds_bpp(52), n_col_bcm, col_inds_bcm(52), bpp_ind
     extern struct {
@@ -783,6 +795,9 @@ public:
     IOParams<double> bhspinmag;
     IOParams<double> rejuv_fac;
     IOParams<double> lambdaf;
+    IOParams<long long int> use_metisse;
+    IOParams<std::string> path_to_tracks;
+    IOParams<std::string> path_to_he_tracks;
 #endif
     IOParams<double> pts1;
     IOParams<double> pts2;
@@ -907,9 +922,12 @@ public:
                    ecsn    (input_par_store, 2.25,   "cosmic-ecsn",       "ECSN CO core mass threshold [Msun]"),
                    ecsn_mlow(input_par_store, 1.6,   "cosmic-ecsn-mlow",  "ECSN lower He core mass threshold [Msun]"),
                    bhspinmag(input_par_store, 0.0,   "cosmic-bhspinmag",  "BH birth spin magnitude"),
-                   rejuv_fac(input_par_store, 1.0,   "cosmic-rejuvfac",   "Rejuvenation factor for CE mergers"),
-                   lambdaf (input_par_store, 0.5,    "cosmic-lambdaf",    "CE lambda binding energy factor"),
-                   pts1    (input_par_store, 0.05,   "cosmic-pts1",       "Timestep fraction for MS"),
+                   rejuv_fac(input_par_store, 1.0,   "cosmic-rejuvfac",          "Rejuvenation factor for CE mergers"),
+                   lambdaf (input_par_store, 0.5,    "cosmic-lambdaf",           "CE lambda binding energy factor"),
+                   use_metisse(input_par_store, 0LL, "cosmic-use-metisse",       "Use METISSE stellar tracks: 0=SSE (default); 1=METISSE (requires METISSE library at build time)"),
+                   path_to_tracks(input_par_store,    std::string(""), "cosmic-path-to-tracks",    "Path to METISSE H-burning track directory (required when use-metisse=1)"),
+                   path_to_he_tracks(input_par_store, std::string(""), "cosmic-path-to-he-tracks", "Path to METISSE He-burning track directory (empty = same as path-to-tracks)"),
+                   pts1    (input_par_store, 0.05,   "cosmic-pts1",              "Timestep fraction for MS"),
                    pts2    (input_par_store, 0.01,   "cosmic-pts2",       "Timestep fraction for GB, CHeB, AGB, HeGB"),
                    pts3    (input_par_store, 0.02,   "cosmic-pts3",       "Timestep fraction for HG, HeMS"),
                    idum    (input_par_store, 1234,   "cosmic-idum",       "Random number seed for kick routine"),
@@ -977,7 +995,10 @@ public:
             {ecsn_mlow.key,  required_argument, &sse_flag, 37},
             {bhspinmag.key,  required_argument, &sse_flag, 38},
             {rejuv_fac.key,  required_argument, &sse_flag, 39},
-            {lambdaf.key,    required_argument, &sse_flag, 40},
+            {lambdaf.key,        required_argument, &sse_flag, 40},
+            {use_metisse.key,    required_argument, &sse_flag, 41},
+            {path_to_tracks.key,    required_argument, &sse_flag, 42},
+            {path_to_he_tracks.key, required_argument, &sse_flag, 43},
 #endif
             {pts1.key,   required_argument, &sse_flag, 14},
             {pts2.key,   required_argument, &sse_flag, 15},       
@@ -1163,6 +1184,21 @@ public:
                 case 40:
                     lambdaf.value = atof(optarg);
                     if(print_flag) lambdaf.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 41:
+                    use_metisse.value = atoi(optarg);
+                    if(print_flag) use_metisse.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 42:
+                    path_to_tracks.value = std::string(optarg);
+                    if(print_flag) path_to_tracks.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 43:
+                    path_to_he_tracks.value = std::string(optarg);
+                    if(print_flag) path_to_he_tracks.print(std::cout);
                     opt_used+=2;
                     break;
 #endif
@@ -1607,9 +1643,25 @@ public:
 
 #elif COSMIC
         // --- COSMIC COMMON block initialisation ---
-        // Use SSE backend (not METISSE)
+        // Select stellar evolution backend: SSE (default) or METISSE
         se_flags_.using_sse     = 1;
-        se_flags_.using_metisse = 0;
+        se_flags_.using_metisse = (int)_input.use_metisse.value;
+
+        // /METISSEVARS/ — set track paths (Fortran CHARACTER*256: space-padded)
+        // Helper: copy a std::string into a fixed-length Fortran char array
+        auto fortran_strncpy = [](char* dst, const std::string& src, int len) {
+            int n = std::min((int)src.size(), len);
+            if (n > 0) memcpy(dst, src.c_str(), n);
+            if (n < len) memset(dst + n, ' ', len - n);
+        };
+        fortran_strncpy(metissevars_.path_to_tracks,    _input.path_to_tracks.value,    256);
+        // If path_to_he_tracks is empty, fall back to path_to_tracks
+        const std::string& he_path = _input.path_to_he_tracks.value.empty()
+                                     ? _input.path_to_tracks.value
+                                     : _input.path_to_he_tracks.value;
+        fortran_strncpy(metissevars_.path_to_he_tracks, he_path, 256);
+        metissevars_.z_match_limit  = 0.0;   // METISSE default: no z-matching cutoff
+        metissevars_.metisse_verbose = 0;    // silent by default
 
         // /WINDVARS/
         windvars_.neta   = _input.neta.value;
@@ -1709,6 +1761,8 @@ public:
         z = _input.z.value;
         if (_print_flag&&(z<0.0001||z>0.03))
             std::cerr<<"COSMIC warning! metallicity Z is not in (0.0001, 0.03); given value:"<<z<<std::endl;
+        if (_input.use_metisse.value && _input.path_to_tracks.value.empty())
+            std::cerr<<"COSMIC warning! use-metisse=1 but --cosmic-path-to-tracks is not set; METISSE initialisation will likely fail."<<std::endl;
         zcnsts_(&z, zpars);
 
         // Random seed: COSMIC uses /RAND1/ idum1

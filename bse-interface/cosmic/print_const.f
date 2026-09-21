@@ -34,9 +34,13 @@
       write(*,*) 'metvars: zsun:',zsun
       write(*,*) 'mixvars: rejuv_fac:',rejuv_fac
       write(*,*) 'points: pts1:',pts1,' pts2:',pts2,' pts3:',pts3
-      write(*,*) 'se_flags: using_metisse:',using_metisse,
-     &     ' using_sse:',using_sse
       write(*,*) 'rand1: idum1:',idum1
+      write(*,*) 'metisse: using_metisse:',using_metisse,
+     &     ' using_sse:',using_sse
+      write(*,*) 'metisse paths: path_to_tracks: [',
+     &     TRIM(path_to_tracks),']'
+      write(*,*) 'metisse paths: path_to_he_tracks: [',
+     &     TRIM(path_to_he_tracks),']'
       write(*,*) 'types: ktype:'
       do K=0,14
          write(*,*) ktype(k,:)

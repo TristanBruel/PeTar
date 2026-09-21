@@ -5,25 +5,44 @@ BSE_TEST=petar.cosmic
 BSE_PATH=cosmic
 CXXFLAGS = -D COSMIC -D BSE_BASE
 
+# ── METISSE support ───────────────────────────────────────────────────────────
+# Set METISSE_PATH to the directory that contains libmetisse.a (or libmetisse.so)
+# and the METISSE Fortran module files.  Example:
+#   make -f Makefile.cosmic_test METISSE_PATH=/opt/metisse/lib
+# When unset (the default), the no-op METISSE stubs in metisse_stubs.f are used
+# and only the SSE back-end is available at runtime.
+METISSE_PATH ?=
+ifneq ($(METISSE_PATH),)
+CXXFLAGS  += -D USE_METISSE
+METISSE_LIBS = -L$(METISSE_PATH) -lmetisse
+METISSE_FFLAGS = -I$(METISSE_PATH)
+endif
+# ─────────────────────────────────────────────────────────────────────────────
+
 TARGET: $(BSE_LIB) $(BSE_TEST) petar.get.init.binary
 
 FC=gfortran
 CXX=g++
 
 CXXFLAGS += -O2 -std=c++11
-FFLAGS += -O2 -fPIC -fallow-argument-mismatch
+FFLAGS += -O2 -fPIC -fallow-argument-mismatch $(METISSE_FFLAGS)
 FCLIBS = -lgfortran -lm
 
 VPATH=$(BSE_PATH)
 
 SRC:= $(shell find $(BSE_PATH) -type f  \( -iname '*.f' ! -iname '.*' ! -iname '[sb]se.f' ! -iname 'mo[sb]se.f' ! -iname 'popbin.f' \) )
+# When the real METISSE library is linked, exclude the METISSE stub file so
+# there are no duplicate-symbol errors.
+ifneq ($(METISSE_PATH),)
+SRC := $(filter-out $(BSE_PATH)/metisse_stubs.f, $(SRC))
+endif
 OBJ:= $(SRC:.f=.o)
 
 $(BSE_LIB): $(OBJ)
 	ar rcs $@ $^
 
 $(BSE_TEST): bse_test.cxx $(BSE_LIB) bse_interface.h
-	$(CXX) $(CXXFLAGS) $< -o $@ -L./ -lbse $(FCLIBS)
+	$(CXX) $(CXXFLAGS) $< -o $@ -L./ -lbse $(FCLIBS) $(METISSE_LIBS)
 
 petar.get.init.binary: get_init_binary_bse.sh
 	ln -sf $< $@
