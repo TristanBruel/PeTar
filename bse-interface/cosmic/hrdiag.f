@@ -10,7 +10,8 @@
       real*8 bhspin
       real*8 r,lum,mc,rc,menv,renv,k2,mcx
       
-      if (using_METISSE.eq.1) then
+      if (using_METISSE.eq.1 .and. id.gt.0) then
+*         Normal METISSE call: id>0 means a valid tarr slot.
           CALL METISSE_hrdiag(mass,aj,mt,tm,tn,tscls,lums,GB,zpars,
      &                  r,lum,kw,mc,rc,menv,renv,k2,
      &                  mcx,id)
@@ -45,9 +46,12 @@
            endif
            ! get_bhspin is defined in assign_commons_cosmic.f90
            if (kw==14) CALL get_bhspin(bhspin,id)
-          
-      elseif (using_SSE.eq.1) then
-          !WRITE(*,*) 'Calling SSE_hrdiag'
+
+      elseif (using_SSE.eq.1 .or. using_METISSE.eq.1) then
+*         SSE fallback: id<=0 means a scratch/temporary caller (e.g. trdot)
+*         that has no tarr slot.  SSE commons were initialised by the
+*         SSE_zcnsts call inside zcnsts() so this is safe.
+          !WRITE(*,*) 'Calling SSE_hrdiag (fallback, id<=0)'
           CALL SSE_hrdiag(mass,aj,mt,tm,tn,tscls,lums,GB,zpars,
      &                  r,lum,kw,mc,rc,menv,renv,k2,
      &                  bhspin,id)
