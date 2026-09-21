@@ -2168,6 +2168,23 @@ public:
                 _bse_event.record[19][ev] = binary_.bpp[34][ev];  // ospin2
             }
             _bse_event.setEventIndexEnd(n_ev);
+
+	    // Sanitize corrupted core masses when METISSE error detected (evolve_type==101).
+            // Root cause: at end-of-He-track, METISSE's McCO can slightly exceed total mass
+            // due to numerical precision, returning mc > mt and causing negative mc_he.
+            // The corrupted mc feeds back into massc on the next call, creating an infinite
+            // error loop.  Clamping here prevents the corrupted state from persisting.
+            for (int ev = 0; ev < n_ev; ev++) {
+                if ((int)_bse_event.record[9][ev] == 101) {
+                    if (mc[0] > mt[0]) mc[0] = mt[0];
+                    if (mc[0] < 0.0)   mc[0] = 0.0;
+                    if (mc[1] > mt[1]) mc[1] = mt[1];
+                    if (mc[1] < 0.0)   mc[1] = 0.0;
+                    _star1.mc = mc[0];
+                    _star2.mc = mc[1];
+                    break;
+                }
+            }
         }
 #endif
 

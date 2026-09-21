@@ -44,7 +44,7 @@ subroutine METISSE_zcnsts(z, zpars, ierr)
         ! Currently only for cosmic, as it can change path_to_tracks mid-computation
         ! through its python wrapper
         
-        if (front_end == COSMIC) call check_path_change(load_tracks)
+        if (front_end == COSMIC) load_tracks = check_path_change()
     
         if (load_tracks) then
             if (mode /= 0) then

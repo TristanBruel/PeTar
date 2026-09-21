@@ -91,7 +91,8 @@
                 Mcbagb = t% tr(i_he_core, j_bagb)
                 ! mc_max = MAX(M_ch,0.773* Mcbagb-0.35)
 
-                t% pars% core_mass = t% pars% McCO
+                ! Clamp: McCO can exceed mass at end-of-track due to numerical precision
+                t% pars% core_mass = min(t% pars% McCO, t% pars% mass)
                 if (t% initial_mass<=very_low_mass_limit) then
                     t% pars% phase = HeWD
                 elseif (t% pars% core_mass<tiny) then
@@ -198,7 +199,8 @@
                 j_bagb = min(t% ntrack, TAMS_HE_EEP)
                 Mcbagb = t% tr(i_mass, j_bagb)
                 ! mc_max = MAX(M_ch,0.773* Mcbagb-0.35)
-                t% pars% core_mass = t% pars% McCO
+                ! Clamp: McCO can exceed mass at end-of-He-track due to numerical precision
+                t% pars% core_mass = min(t% pars% McCO, t% pars% mass)
                 has_become_remnant = .true.
                 t% star_type = remnant
             else
