@@ -801,6 +801,7 @@ public:
     IOParams<long long int> use_metisse;
     IOParams<std::string> path_to_tracks;
     IOParams<std::string> path_to_he_tracks;
+    IOParams<double> z_match_limit;
 #endif
     IOParams<double> pts1;
     IOParams<double> pts2;
@@ -930,6 +931,7 @@ public:
                    use_metisse(input_par_store, 0LL, "cosmic-use-metisse",       "Use METISSE stellar tracks: 0=SSE (default); 1=METISSE (requires METISSE library at build time)"),
                    path_to_tracks(input_par_store,    std::string(""), "cosmic-path-to-tracks",    "Path to METISSE H-burning track directory (required when use-metisse=1)"),
                    path_to_he_tracks(input_par_store, std::string(""), "cosmic-path-to-he-tracks", "Path to METISSE He-burning track directory (empty = same as path-to-tracks)"),
+                   z_match_limit(input_par_store, 0.0, "cosmic-z-match-limit",   "METISSE relative Z tolerance for track reuse across calls (0=exact match)"),
                    pts1    (input_par_store, 0.05,   "cosmic-pts1",              "Timestep fraction for MS"),
                    pts2    (input_par_store, 0.01,   "cosmic-pts2",       "Timestep fraction for GB, CHeB, AGB, HeGB"),
                    pts3    (input_par_store, 0.02,   "cosmic-pts3",       "Timestep fraction for HG, HeMS"),
@@ -1002,6 +1004,7 @@ public:
             {use_metisse.key,    required_argument, &sse_flag, 41},
             {path_to_tracks.key,    required_argument, &sse_flag, 42},
             {path_to_he_tracks.key, required_argument, &sse_flag, 43},
+            {z_match_limit.key,     required_argument, &sse_flag, 44},
 #endif
             {pts1.key,   required_argument, &sse_flag, 14},
             {pts2.key,   required_argument, &sse_flag, 15},       
@@ -1202,6 +1205,11 @@ public:
                 case 43:
                     path_to_he_tracks.value = std::string(optarg);
                     if(print_flag) path_to_he_tracks.print(std::cout);
+                    opt_used+=2;
+                    break;
+                case 44:
+                    z_match_limit.value = atof(optarg);
+                    if(print_flag) z_match_limit.print(std::cout);
                     opt_used+=2;
                     break;
 #endif
@@ -1663,7 +1671,7 @@ public:
                                      ? _input.path_to_tracks.value
                                      : _input.path_to_he_tracks.value;
         fortran_strncpy(metissevars_.path_to_he_tracks, he_path, 256);
-        metissevars_.z_match_limit  = 0.0;   // METISSE default: no z-matching cutoff
+        metissevars_.z_match_limit  = _input.z_match_limit.value;
         metissevars_.metisse_verbose = 0;    // silent by default
 
         // /WINDVARS/
