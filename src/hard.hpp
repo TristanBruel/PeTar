@@ -2853,7 +2853,7 @@ public:
                 _i_cluster, _n_ptcl, sizeof(Tptcl));
         fflush(stderr);
 #endif
-        Tptcl ptcl_tmp[_n_ptcl];
+        std::vector<Tptcl> ptcl_tmp(_n_ptcl);
 #ifdef COSMIC_SEGFAULT_DEBUG
         fprintf(stderr, "[CSDEBUG-POST-PTCLTMP-CTOR] cluster=%d ptcl_tmp constructed\n", _i_cluster);
         fflush(stderr);
