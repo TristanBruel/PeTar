@@ -5,6 +5,7 @@
 
 #include"cstdlib"
 #include <algorithm>
+#include <vector>
 
 #include"AR/symplectic_integrator.h"
 #include"Hermite/hermite_integrator.h"
