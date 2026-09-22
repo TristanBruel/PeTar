@@ -44,6 +44,7 @@
 *             Safety clamp: CO core mass cannot exceed total He star mass
 *             (numerical precision at end-of-He-track can give McCO > mass)
               if (mc.gt.mt) mc = mt
+              if (mc.lt.0.d0) mc = 0.d0
               mc_co(id) = mc
               mc_he(id) = mt - mc
            endif

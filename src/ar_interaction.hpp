@@ -641,10 +641,15 @@ public:
             // time_record and time_interrupt have offsets, thus use difference to obtain true dt
             Float dt = _time_end - _p.time_record;
 
-            // evolve star
+            // evolve star — serialised: COSMIC Fortran BSE uses global COMMON blocks (rand1_, rand2_)
+            // that are not thread-safe; this critical section prevents concurrent access.
             StarParameterOut output;
             StarParameter star_bk = _p.star;
-            int event_flag = bse_manager.evolveStar(_p.star, output, dt);
+            int event_flag;
+#pragma omp critical(bse_evolve)
+            {
+                event_flag = bse_manager.evolveStar(_p.star, output, dt);
+            }
 
             // error 
             if (event_flag<0) {
@@ -986,7 +991,13 @@ public:
 
                     BinaryEvent bin_event;
                     // loop until the time_end reaches
-                    int event_flag = bse_manager.evolveBinary(p1->star, p2->star, out[0], out[1], semi, period, ecc, bin_event, binary_type_init, dt);
+                    // serialised: COSMIC Fortran BSE uses global COMMON blocks (rand1_, rand2_)
+                    // that are not thread-safe; this critical section prevents concurrent access.
+                    int event_flag;
+                    #pragma omp critical(bse_evolve)
+                    {
+                        event_flag = bse_manager.evolveBinary(p1->star, p2->star, out[0], out[1], semi, period, ecc, bin_event, binary_type_init, dt);
+                    }
 
                     // error
                     if (event_flag<0) {
@@ -1102,9 +1113,14 @@ public:
                         p1_star_bk = p1->star;
                         p2_star_bk = p2->star;
                         // call BSE function to merge two stars
+                        // serialised: COSMIC Fortran BSE uses global COMMON blocks (rand1_, rand2_)
+                        // that are not thread-safe; this critical section prevents concurrent access.
                         Float semi = _bin.semi;
                         Float ecc = _bin.ecc;
-                        bse_manager.merge(p1->star, p2->star, out[0], out[1], semi, ecc);
+                        #pragma omp critical(bse_evolve)
+                        {    
+                            bse_manager.merge(p1->star, p2->star, out[0], out[1], semi, ecc);
+                        }
 
                         postProcess(out, pos_cm, vel_cm, semi, ecc, 0);
                         if (stellar_evolution_write_flag&&(p1->mass==0.0||p2->mass==0.0)) {

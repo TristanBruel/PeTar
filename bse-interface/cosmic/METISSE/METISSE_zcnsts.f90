@@ -11,6 +11,7 @@ subroutine METISSE_zcnsts(z, zpars, ierr)
     character(LEN = strlen):: find_cmd, rnd, infile, temp_filename
     integer:: i, j, nloop, num_tracks
     logical:: load_tracks, debug
+    logical, external:: check_path_change
     
     debug = .false.
     ierr = 0

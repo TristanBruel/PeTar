@@ -12,7 +12,9 @@ do
 	    echo 'Options (default arguments shown in parentheses at the end):';
 	    echo '  -f [S] Specify the output file (PeTar input data) name (default: input file name + ".input")';
 	    echo '  -i [I] Skip the given number of rows in the input data file (default: 0)';
-	    echo '  -s [S] Add stellar evolution columns: base | bse | no (default: no)';
+	    echo '  -s [S] Add stellar evolution columns: base | bse | cosmic | no (default: no)';
+	    echo '         "cosmic" generates the same BSE-style columns as "bse" but labels the mode'
+	    echo '         explicitly for use with petar executables built with the COSMIC interrupt.';
 	    echo '  -m [F] Set the mass scaling factor from the input data unit to [Msun]: mass[input unit]*m_scale=mass[Msun] (default: 1.0)';
 	    echo '      Note that Msun is used as the mass unit in BSE based stellar evolution.';
 	    echo '  -r [F] Set the radius scaling factor from the input data unit to [pc] (default: 1.0)';
@@ -139,7 +141,7 @@ if [[ $seflag != 'no' ]]; then
 	echo "Interrupt mode: base'
 	echo 'Stellar radius (0): " $radius
 	awk '{OFMT="%.15g"; print '"$base_col$se_col$soft_col"'}' $fout.scale__ >>$fout
-    elif [[ "$seflag" == *"bse"* ]]; then
+    elif [[ "$seflag" == *"bse"* || "$seflag" == "cosmic" ]]; then
 	#       type, m0,  m,     rad, mc,  rc,  spin, epoch, time, lum
 	bse_col='1, $1*ms, $1*ms, 0.0, 0.0, 0.0, 0.0,  0.0,   0.0,  0.0,'
 

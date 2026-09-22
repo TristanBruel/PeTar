@@ -33,6 +33,7 @@
         return
     else
         t => tarr(idd)
+        t% ierr = 0    ! Reset per-call so prior errors don't perpetuate into code_error
     endif
     
     debug = .false.

@@ -1413,7 +1413,7 @@ public:
                               "Single_star2"         //16 (COSMIC: 14+k, k=2 — star 2 goes single)
                               } {}
 
-    //! Safe accessor for binary type name; returns "Unknown(N)" for out-of-range types (e.g. 100=Stopped, 101=METISSE_error)
+    //! Safe accessor for binary type name; handles types 100/101 and out-of-range.
     const char* getBinaryTypeName(int type) const {
         static const char* unknown_names[] = {
             "Unknown",          // generic fallback
@@ -2182,6 +2182,18 @@ public:
                     if (mc[1] < 0.0)   mc[1] = 0.0;
                     _star1.mc = mc[0];
                     _star2.mc = mc[1];
+                    // Sanitize He shell mass (massc_he) in bpp event table.
+                    // binary_.bpp[15]=massc_he_1, [16]=massc_he_2 (Fortran COMMON /BINARY/).
+                    // binary_.bpp[1]=mass1, [2]=mass2 (total masses).
+                    if (binary_.bpp[15][ev] > binary_.bpp[1][ev])
+                        binary_.bpp[15][ev] = binary_.bpp[1][ev];
+                    if (binary_.bpp[15][ev] < 0.0) binary_.bpp[15][ev] = 0.0;
+                    if (binary_.bpp[16][ev] > binary_.bpp[2][ev])
+                        binary_.bpp[16][ev] = binary_.bpp[2][ev];
+                    if (binary_.bpp[16][ev] < 0.0) binary_.bpp[16][ev] = 0.0;
+                    // Mirror corrected values into the event record
+                    _bse_event.record[14][ev] = binary_.bpp[15][ev];
+                    _bse_event.record[15][ev] = binary_.bpp[16][ev];
                     break;
                 }
             }
