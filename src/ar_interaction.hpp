@@ -667,8 +667,12 @@ public:
             double dt_miss = bse_manager.getDTMiss(output);
             _p.time_record += dt-dt_miss;
 
-            // estimate next time to check 
+            // estimate next time to check
+            // getTimeStepStar calls trdot_/trflow_ -> SSE_hrdiag; must be inside critical section
+#pragma omp critical(bse_evolve)
+            {
             _p.time_interrupt = std::min(_p.time_record + bse_manager.getTimeStepStar(_p.star), time_interrupt_max);
+            }
 
             // record mass change (if loss, negative)
             double dm = bse_manager.getMassLoss(output);
@@ -787,8 +791,12 @@ public:
                 p1->time_record = _bin_interrupt.time_now - bse_manager.getDTMiss(out[0]);
                 p2->time_record = _bin_interrupt.time_now - bse_manager.getDTMiss(out[1]);
 
-                // estimate next time to check 
+                // estimate next time to check
+                // getTimeStepBinary calls trdot_/trflow_ -> SSE_hrdiag; must be inside critical section
+#pragma omp critical(bse_evolve)
+                {
                 p1->time_interrupt = std::min(p1->time_record + bse_manager.getTimeStepBinary(p1->star, p2->star, semi, ecc, binary_type_final), time_interrupt_max);
+                }
                 p2->time_interrupt = p1->time_interrupt;
 
                 // reset collision state since binary orbit changes
@@ -1118,7 +1126,7 @@ public:
                         Float semi = _bin.semi;
                         Float ecc = _bin.ecc;
                         #pragma omp critical(bse_evolve)
-                        {    
+                        {
                             bse_manager.merge(p1->star, p2->star, out[0], out[1], semi, ecc);
                         }
 

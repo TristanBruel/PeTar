@@ -24,6 +24,11 @@
 *
 *
       integer kw,kwp,kidx
+*     Thread-safety: guard mc_he/mc_co writes when kidx=0 (called from
+*     trdot/trflow outside the OMP critical section). kidx=0 is an OOB
+*     Fortran array index -- writes must be suppressed to avoid corrupting
+*     rembar_massloss and mc_he(2) in the /SNVARS/ common block.
+      logical kidx_valid
 *
       real*8 mass,aj,mt,tm,tn,tscls(20),lums(10),GB(10),zpars(20),met
       real*8 bhspin
@@ -84,6 +89,9 @@
       ! track whether a star stripped during hrdiag
       stripped_during_hrdiag = .false.
       mch = 1.44d0 !set here owing to AIC ECSN model.
+*     Suppress mc_he/mc_co writes when kidx is out of range (0 or >2).
+*     kidx=0 is used by trdot/trflow callers that don't need stored core masses.
+      kidx_valid = (kidx.ge.1 .and. kidx.le.2)
 *
       mass0 = mass
 C      if(mass0.gt.100.d0) mass = 100.d0
@@ -111,8 +119,8 @@ C      if(mt0.gt.100.d0) mt = 100.d0
 *           Main sequence star.
 *
             mc = 0.d0
-            mc_he(kidx) = 0.d0
-            mc_co(kidx) = 0.d0
+            if (kidx_valid) mc_he(kidx) = 0.d0
+            if (kidx_valid) mc_co(kidx) = 0.d0
             tau = aj/tm
             thook = thookf(mass)*tscls(1)
             zeta = 0.01d0
@@ -186,8 +194,8 @@ C      if(mt0.gt.100.d0) mt = 100.d0
             mc = ((1.d0 - tau)*eta + tau)*mc
             mc = MAX(mc,mcx)
 
-            mc_he(kidx) = mc
-            mc_co(kidx) = 0.0
+            if (kidx_valid) mc_he(kidx) = mc
+            if (kidx_valid) mc_co(kidx) = 0.0
 *
 * Test whether core mass has reached total mass.
 *
@@ -198,8 +206,8 @@ C      if(mt0.gt.100.d0) mt = 100.d0
 * Zero-age helium star
 *
                   mc = 0.d0
-                  mc_he(kidx) = 0.d0
-                  mc_co(kidx) = 0.d0
+                  if (kidx_valid) mc_he(kidx) = 0.d0
+                  if (kidx_valid) mc_co(kidx) = 0.d0
                   mass = mt
                   kw = 7
                   CALL SSE_star(kw,mass,mt,tm,tn,tscls,lums,GB,zpars)
@@ -211,8 +219,8 @@ C      if(mt0.gt.100.d0) mt = 100.d0
 * Zero-age helium white dwarf.
 *
                   mc = mt
-                  mc_he(kidx) = 0.d0
-                  mc_co(kidx) = 0.d0
+                  if (kidx_valid) mc_he(kidx) = 0.d0
+                  if (kidx_valid) mc_co(kidx) = 0.d0
                   mass = mt
                   kw = 10
                endif
@@ -250,8 +258,8 @@ C      if(mt0.gt.100.d0) mt = 100.d0
          if(mass.le.zpars(2))then
 * Star has a degenerate He core which grows on the GB
             mc = mcgbf(lum,GB,lums(6))
-            mc_he(kidx) = mc
-            mc_co(kidx) = 0.0
+            if (kidx_valid) mc_he(kidx) = mc
+            if (kidx_valid) mc_co(kidx) = 0.0
          else
 * Star has a non-degenerate He core which may grow, but
 * only slightly, on the GB
@@ -260,8 +268,8 @@ C      if(mt0.gt.100.d0) mt = 100.d0
             mcy = mcheif(mass,zpars(2),zpars(10))
             mc = mcx + (mcy - mcx)*tau
 
-            mc_he(kidx) = mc
-            mc_co(kidx) = 0.0
+            if (kidx_valid) mc_he(kidx) = mc
+            if (kidx_valid) mc_co(kidx) = 0.0
          endif
          r = rgbf(mt,lum)
          rg = r
@@ -272,8 +280,8 @@ C      if(mt0.gt.100.d0) mt = 100.d0
 * Zero-age helium star
 *
                mc = 0.d0
-               mc_he(kidx) = mc
-               mc_co(kidx) = 0.0
+               if (kidx_valid) mc_he(kidx) = mc
+               if (kidx_valid) mc_co(kidx) = 0.0
                mass = mt
                kw = 7
                CALL SSE_star(kw,mass,mt,tm,tn,tscls,lums,GB,zpars)
@@ -285,8 +293,8 @@ C      if(mt0.gt.100.d0) mt = 100.d0
 * Zero-age helium white dwarf.
 *
                mc = mt
-               mc_he(kidx) = mc
-               mc_co(kidx) = 0.0
+               if (kidx_valid) mc_he(kidx) = mc
+               if (kidx_valid) mc_co(kidx) = 0.0
                mass = mt
                kw = 10
             endif
@@ -309,8 +317,8 @@ C      if(mt0.gt.100.d0) mt = 100.d0
          tau = (aj - tscls(2))/tscls(3)
 *        here, mcx is the helium core mass at helium ignition
          mc = mcx + (mcagbf(mass) - mcx)*tau
-         mc_he(kidx) = mc
-         mc_co(kidx) = 0.0
+         if (kidx_valid) mc_he(kidx) = mc
+         if (kidx_valid) mc_co(kidx) = 0.0
 *
          if(mass.le.zpars(2))then
             lx = lums(5)
@@ -434,8 +442,8 @@ C      if(mt0.gt.100.d0) mt = 100.d0
          if(aj.lt.tscls(13))then
             mcx = mcgbtf(aj,GB(8),GB,tscls(7),tscls(8),tscls(9))
             mc = mcbagb
-            mc_co(kidx) = mcx
-            mc_he(kidx) = mc - mcx
+            if (kidx_valid) mc_co(kidx) = mcx
+            if (kidx_valid) mc_he(kidx) = mc - mcx
             lum = lmcgbf(mcx,GB)
             if(mt.le.mc)then
 *
@@ -447,8 +455,8 @@ C      if(mt0.gt.100.d0) mt = 100.d0
                mt = mc
                mass = mt
                mc = mcx
-               mc_co(kidx) = mc
-               mc_he(kidx) = mt - mc
+               if (kidx_valid) mc_co(kidx) = mc
+               if (kidx_valid) mc_he(kidx) = mt - mc
                CALL SSE_star(kw,mass,mt,tm,tn,tscls,lums,GB,zpars)
                if(mc.le.GB(7))then
                   aj = tscls(4) - (1.d0/((GB(5)-1.d0)*GB(8)*GB(4)))*
@@ -481,8 +489,8 @@ C      if(mt0.gt.100.d0) mt = 100.d0
 * The current core mass is then M_c' - lambda*(M_c' - M_c,DU)  
             mc = mcy - lambdahrdiag*(mcy-mcx)
             mcx = mc
-            mc_co(kidx) = mc
-            mc_he(kidx) = 0.0
+            if (kidx_valid) mc_co(kidx) = mc
+            if (kidx_valid) mc_he(kidx) = 0.0
             mcmax = MIN(mt,mcmax)
          endif
          r = ragbf(mt,lum,zpars(2))
@@ -496,7 +504,7 @@ C      if(mt0.gt.100.d0) mt = 100.d0
             
             ! adjust core masses in case we overshot the maximum allowed core mass
             mc = mcmax
-            mc_co(kidx) = mc
+            if (kidx_valid) mc_co(kidx) = mc
             call assign_remnant(zpars,mc,mcbagb,mass,
      &                          mt,kw,bhspin,kidx)
          endif
@@ -547,8 +555,8 @@ C      if(mt0.gt.100.d0) mt = 100.d0
 *
 *KB: helium core mass is remaining total mass for all He stars
 *
-         mc_he(kidx) = mt - mc
-         mc_co(kidx) = mc
+         if (kidx_valid) mc_he(kidx) = mt - mc
+         if (kidx_valid) mc_co(kidx) = mc
 
          if(stripped_during_hrdiag)then
             return
@@ -565,8 +573,8 @@ C      if(mt0.gt.100.d0) mt = 100.d0
 
             ! adjust core masses if we overshot the maximum allowed core mass
             mc = mcmax
-            mc_he(kidx) = mt - mc
-            mc_co(kidx) = mc
+            if (kidx_valid) mc_he(kidx) = mt - mc
+            if (kidx_valid) mc_co(kidx) = mc
 
             ! He stars use the mass at start of HeMS instead of McBAGB (Hurley 2000, just before Eq. 89)
             mcbagb = mass

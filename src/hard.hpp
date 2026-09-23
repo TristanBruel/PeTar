@@ -355,21 +355,6 @@ public:
                 sym_int.perturber.r_neighbor_crit_sq = std::max(sym_int.perturber.r_neighbor_crit_sq, r_neighbor_crit*r_neighbor_crit);                
             }
             sym_int.reserveIntegratorMem();
-#ifdef COSMIC_SEGFAULT_DEBUG
-            {
-                fprintf(stderr, "[CSDEBUG-A] generateBinaryTree called: n_members=%d G=%g\n",
-                        n_members, ar_manager.interaction.gravitational_constant);
-                for (PS::S32 _di=0; _di<n_members; _di++) {
-                    const auto& _p = ptcl_origin[_di];
-                    fprintf(stderr, "[CSDEBUG-A]   ptcl[%d]: mass=%g pos=(%g,%g,%g) vel=(%g,%g,%g) id=%lld\n",
-                            _di, _p.mass,
-                            _p.pos[0], _p.pos[1], _p.pos[2],
-                            _p.vel[0], _p.vel[1], _p.vel[2],
-                            (long long)_p.id);
-                }
-                fflush(stderr);
-            }   
-#endif
             sym_int.info.generateBinaryTree(sym_int.particles, ar_manager.interaction.gravitational_constant);
 #ifdef SOFT_PERT
             if (_ptcl_artificial!=NULL) {
@@ -2358,14 +2343,6 @@ public:
 #endif
 
             // if interrupt exist, escape initial
-#ifdef COSMIC_SEGFAULT_DEBUG
-            fprintf(stderr, "[CSDEBUG-INIT] cluster=%d n_ptcl=%d n_group=%d ptcl_arti=%s n_members[0]=%d adr_head=%d sizeof(PtclH4)=%zu\n",
-                    i, n_ptcl, n_group,
-                    (ptcl_artificial_ptr==NULL ? "NULL" : "ptr"),
-                    (n_member_in_group_ptr ? n_member_in_group_ptr[0] : -99),
-                    adr_head, sizeof(PtclH4));
-            fflush(stderr);
-#endif
             hard_int_thread[ith]->initial(ptcl_hard_.getPointer(adr_head), n_ptcl, ptcl_artificial_ptr, n_group, n_member_in_group_ptr, manager, time_origin_);
 
             auto& interrupt_binary = hard_int_thread[ith]->integrateToTime(dt);
@@ -2538,94 +2515,16 @@ public:
 
             const PS::S32 n_members = _groups.getNumberOfGroupMembers(i);
 
-#ifdef COSMIC_SEGFAULT_DEBUG 
-            {
-                // Read member_list BEFORE binary_tree.reserve to check if corruption happens during reserve
-                PS::S32* _ml_pre = _groups.getMemberList(i);
-                PS::S32 _gl_pre = _groups.getGroupListSize();
-                fprintf(stderr, "[CSDEBUG-PRE-RESERVE] group=%d n_members=%d gl_size=%d member_list=%p\n",
-                        i, n_members, _gl_pre, (void*)_ml_pre);
-                fflush(stderr);
-                for (PS::S32 _di=0; _di<n_members; _di++) {
-                    fprintf(stderr, "[CSDEBUG-PRE-RESERVE]   [%d] addr=%p\n", _di, (void*)(_ml_pre+_di));
-                    fflush(stderr);
-                    PS::S32 _v = _ml_pre[_di];
-                    fprintf(stderr, "[CSDEBUG-PRE-RESERVE]   [%d] value=%d\n", _di, _v);
-                    fflush(stderr);
-                } 
-                fprintf(stderr, "[CSDEBUG-PRE-RESERVE] === calling binary_tree.reserve(%d) now ===\n", n_members);
-                fflush(stderr);
-            }
-#endif
 
             binary_tree.reserve(n_members);
 
-#ifdef COSMIC_SEGFAULT_DEBUG
-            {   
-                // Read member_list AFTER binary_tree.reserve to check if reserve corrupted heap
-                PS::S32* _ml_post_reserve = _groups.getMemberList(i);
-                fprintf(stderr, "[CSDEBUG-POST-RESERVE] group=%d member_list=%p (after reserve)\n",
-                        i, (void*)_ml_post_reserve);
-                fflush(stderr);    
-                for (PS::S32 _di=0; _di<n_members; _di++) {
-                    fprintf(stderr, "[CSDEBUG-POST-RESERVE]   [%d] addr=%p\n", _di, (void*)(_ml_post_reserve+_di));
-                    fflush(stderr);
-                    PS::S32 _v = _ml_post_reserve[_di];
-                    fprintf(stderr, "[CSDEBUG-POST-RESERVE]   [%d] value=%d\n", _di, _v);
-                    fflush(stderr);
-                }
-                fprintf(stderr, "[CSDEBUG-POST-RESERVE] === calling binary_tree.resizeNoInitialize(%d) now ===\n", n_members-1);
-                fflush(stderr);
-            }
-#endif
 
 #ifdef ARTIFICIAL_PARTICLE_DEBUG
             assert(n_members<ARRAY_ALLOW_LIMIT);
-#endif        
+#endif
             PS::S32* member_list = _groups.getMemberList(i);
             binary_tree.resizeNoInitialize(n_members-1);
             // build hierarch binary tree from the minimum distant neighbors
-#ifdef COSMIC_SEGFAULT_DEBUG
-            {
-                PS::S32 _gl_size = _groups.getGroupListSize();
-                fprintf(stderr, "[CSDEBUG-B] generateBinaryTree: n_members=%d n_ptcl=%d G=%g sizeof(Tptcl)=%zu gl_size=%d\n",
-                        n_members, _n_ptcl, ap_manager.gravitational_constant, sizeof(Tptcl), _gl_size);
-                fprintf(stderr, "[CSDEBUG-B]   _ptcl_in_cluster=%p  member_list=%p\n",
-                        (void*)_ptcl_in_cluster, (void*)member_list); 
-                fflush(stderr);
-                for (PS::S32 _di=0; _di<n_members; _di++) {
-                    if (_di >= _gl_size) {
-                        fprintf(stderr, "[CSDEBUG-B]   [%d] BOUNDS ERROR: _di=%d >= gl_size=%d — group_list_ is TRUNCATED\n",
-                                _di, _di, _gl_size);
-                        fflush(stderr);
-                        break;
-                    }
-                    fprintf(stderr, "[CSDEBUG-B]   [%d] reading member_list[%d]...\n", _di, _di);
-                    fflush(stderr);
-                    PS::S32 _mi = member_list[_di];
-                    fprintf(stderr, "[CSDEBUG-B]   [%d] member_list[%d]=%d  ptcl addr=%p\n",
-                            _di, _di, _mi, (void*)(_ptcl_in_cluster+_mi));
-                    fflush(stderr);
-                    if (_mi < 0 || _mi >= _n_ptcl) {
-                        fprintf(stderr, "[CSDEBUG-B]   [%d] INDEX OUT OF RANGE: _mi=%d n_ptcl=%d\n", _di, _mi, _n_ptcl);
-                        fflush(stderr);
-                        continue;  
-                    }
-                    const auto& _p = _ptcl_in_cluster[_mi];
-                    fprintf(stderr, "[CSDEBUG-B]   [%d] mass=%g\n", _di, _p.mass);
-                    fflush(stderr);
-                    fprintf(stderr, "[CSDEBUG-B]   [%d] pos=(%g,%g,%g)\n", _di, _p.pos[0], _p.pos[1], _p.pos[2]);
-                    fflush(stderr);
-                    fprintf(stderr, "[CSDEBUG-B]   [%d] vel=(%g,%g,%g)\n", _di, _p.vel[0], _p.vel[1], _p.vel[2]);
-                    fflush(stderr);
-                    fprintf(stderr, "[CSDEBUG-B]   [%d] id=%lld\n", _di, (long long)_p.id);
-                    fflush(stderr);
-                }
-                fprintf(stderr, "[CSDEBUG-B]   binary_tree capacity=%d size=%d\n",
-                        binary_tree.capacity(), binary_tree.size());
-                fflush(stderr);
-            }
-#endif
             COMM::BinaryTree<Tptcl,COMM::Binary>::generateBinaryTree(binary_tree.getPointer(), member_list, n_members, _ptcl_in_cluster, ap_manager.gravitational_constant);
 
             struct {PS::F64 mean_mass_inv, rin, rout, dt_tree; } changeover_rsearch_pars = {Tptcl::mean_mass_inv, manager->r_in_base, manager->r_out_base, _dt_tree};
@@ -2807,16 +2706,11 @@ public:
 
         assert(group_ptcl_adr_offset<=_n_ptcl);
 
-#ifdef COSMIC_SEGFAULT_DEBUG
-        fprintf(stderr, "[CSDEBUG-POST-LOOP] cluster=%d n_ptcl=%d n_groups=%d group_ptcl_adr_offset=%d\n",
-                _i_cluster, _n_ptcl, _n_groups, group_ptcl_adr_offset);
-        fflush(stderr);
-#endif
 
         // Reorder the ptcl that group member come first
         PS::S32 ptcl_list_reorder[_n_ptcl];
         for (int i=0; i<_n_ptcl; i++) ptcl_list_reorder[i] = i;
- 
+
         // shift single after group members
         PS::S32 i_single_front=group_ptcl_adr_offset;
         PS::S32 i_group = 0;
@@ -2849,35 +2743,14 @@ public:
         for (int i=0; i<group_ptcl_adr_offset; i++) ptcl_list_reorder[i] = group_ptcl_adr_list[i];
 
         // templately copy ptcl data
-#ifdef COSMIC_SEGFAULT_DEBUG
-        fprintf(stderr, "[CSDEBUG-PRE-PTCLTMP] cluster=%d about to create Tptcl ptcl_tmp[%d] (sizeof(Tptcl)=%zu)\n",
-                _i_cluster, _n_ptcl, sizeof(Tptcl));
-        fflush(stderr);
-#endif
         std::vector<Tptcl> ptcl_tmp(_n_ptcl);
-#ifdef COSMIC_SEGFAULT_DEBUG
-        fprintf(stderr, "[CSDEBUG-POST-PTCLTMP-CTOR] cluster=%d ptcl_tmp constructed\n", _i_cluster);
-        fflush(stderr);
-#endif
         for (int i=0; i<_n_ptcl; i++) ptcl_tmp[i]=_ptcl_in_cluster[i];
-#ifdef COSMIC_SEGFAULT_DEBUG
-        fprintf(stderr, "[CSDEBUG-POST-PTCLTMP-COPY] cluster=%d ptcl_tmp copy done\n", _i_cluster);
-        fflush(stderr);
-#endif
 
         // reorder ptcl
         for (int i=0; i<_n_ptcl; i++) _ptcl_in_cluster[i]=ptcl_tmp[ptcl_list_reorder[i]];
-#ifdef COSMIC_SEGFAULT_DEBUG
-        fprintf(stderr, "[CSDEBUG-POST-REORDER] cluster=%d reorder done — about to destroy ptcl_tmp\n", _i_cluster);
-        fflush(stderr);
-#endif
 
         // changeover update
         if (changeover_update_flag) _changeover_update_list.push_back(_i_cluster);
-#ifdef COSMIC_SEGFAULT_DEBUG
-        fprintf(stderr, "[CSDEBUG-FUNC-END] cluster=%d findGroupsAndCreate returning\n", _i_cluster);
-        fflush(stderr);
-#endif
     }
 
     //! Find groups and create aritfical particles to sys
@@ -2924,31 +2797,6 @@ public:
             // merge group_candidates
             group_candidate.searchAndMerge(ptcl_in_cluster, n_ptcl);
 
-#ifdef COSMIC_SEGFAULT_DEBUG
-            {
-                PS::S32 _ng = group_candidate.getNumberOfGroups();
-                PS::S32 _gl = group_candidate.getGroupListSize();
-                fprintf(stderr, "[CSDEBUG-AFTER-MERGE] cluster=%d n_ptcl=%d n_groups=%d gl_size=%d\n",
-                        i, n_ptcl, _ng, _gl);
-                fflush(stderr);
-                for (PS::S32 _gi=0; _gi<_ng; _gi++) {
-                    PS::S32 _nm = group_candidate.getNumberOfGroupMembers(_gi);
-                    PS::S32* _ml = group_candidate.getMemberList(_gi);
-                    fprintf(stderr, "[CSDEBUG-AFTER-MERGE]   group=%d n_members=%d member_list_ptr=%p\n",
-                            _gi, _nm, (void*)_ml);
-                    fflush(stderr);
-                    for (PS::S32 _mi=0; _mi<_nm; _mi++) {
-                        fprintf(stderr, "[CSDEBUG-AFTER-MERGE]     [%d] addr=%p\n", _mi, (void*)(_ml+_mi));
-                        fflush(stderr);
-                        PS::S32 _idx = _ml[_mi];
-                        fprintf(stderr, "[CSDEBUG-AFTER-MERGE]     [%d] idx=%d\n", _mi, _idx);
-                        fflush(stderr);
-                    }
-                }
-                fprintf(stderr, "[CSDEBUG-AFTER-MERGE] === calling findGroupsAndCreateArtificialParticlesOneCluster ===\n");
-                fflush(stderr);
-            }
-#endif
 
             // find groups and generate artificial particles for cluster i
             findGroupsAndCreateArtificialParticlesOneCluster(i, ptcl_in_cluster, n_ptcl, ptcl_artificial_thread[ith], binary_table_thread[ith], n_group_in_cluster_[i], n_member_in_group_thread[ith], i_cluster_changeover_update_threads[ith], group_candidate, _dt_tree);
