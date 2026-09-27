@@ -646,12 +646,19 @@ public:
             StarParameterOut output;
             StarParameter star_bk = _p.star;
             int event_flag;
+            double dt_miss;
+            // Consolidate evolveStar + getDTMiss + getTimeStepStar into one critical section.
+            // getTimeStepStar calls trdot_/trflow_ which write Fortran COMMON /fall/fallback/;
+            // that COMMON is also read by evolv2_ on other threads, so all three must be serialised.
 #pragma omp critical(bse_evolve)
             {
                 event_flag = bse_manager.evolveStar(_p.star, output, dt);
+                dt_miss = bse_manager.getDTMiss(output);
+                _p.time_record += dt - dt_miss;
+                _p.time_interrupt = std::min(_p.time_record + bse_manager.getTimeStepStar(_p.star), time_interrupt_max);
             }
 
-            // error 
+            // error
             if (event_flag<0) {
                 std::cerr<<"SSE Error: ID= "<<_p.id;
                 _p.star.print(std::cerr);
@@ -661,17 +668,6 @@ public:
                 std::cout<<std::flush;
                 std::cerr<<std::flush;
                 abort();
-            }
-
-            // if expected time not reach, record actually evolved time
-            double dt_miss = bse_manager.getDTMiss(output);
-            _p.time_record += dt-dt_miss;
-
-            // estimate next time to check
-            // getTimeStepStar calls trdot_/trflow_ -> SSE_hrdiag; must be inside critical section
-#pragma omp critical(bse_evolve)
-            {
-            _p.time_interrupt = std::min(_p.time_record + bse_manager.getTimeStepStar(_p.star), time_interrupt_max);
             }
 
             // record mass change (if loss, negative)
@@ -780,23 +776,23 @@ public:
             Float drdv = pos_red * vel_red;
 
 #ifdef BSE_BASE
-            auto postProcess =[&](StarParameterOut* out, Float* pos_cm, Float*vel_cm, Float& semi, Float& ecc, int binary_type_final) {
+            // postProcess takes pre-computed time_record and time_interrupt values so that
+            // getTimeStepBinary (which calls Fortran trdot_/trflow_ touching /fall/fallback COMMON)
+            // is called inside a bse_evolve critical section at each call site, not here.
+            auto postProcess =[&](StarParameterOut* out, Float* pos_cm, Float*vel_cm, Float& semi, Float& ecc, int binary_type_final,
+                                  double p1_time_record_new, double p2_time_record_new, double p12_time_interrupt_new) {
                 // if status not set, set to change
-                if (_bin_interrupt.status == AR::InterruptStatus::none) 
+                if (_bin_interrupt.status == AR::InterruptStatus::none)
                     _bin_interrupt.status = AR::InterruptStatus::change;
-                    
+
                 // set return flag >0
                 modify_return = 2;
 
-                p1->time_record = _bin_interrupt.time_now - bse_manager.getDTMiss(out[0]);
-                p2->time_record = _bin_interrupt.time_now - bse_manager.getDTMiss(out[1]);
+                p1->time_record = p1_time_record_new;
+                p2->time_record = p2_time_record_new;
 
                 // estimate next time to check
-                // getTimeStepBinary calls trdot_/trflow_ -> SSE_hrdiag; must be inside critical section
-#pragma omp critical(bse_evolve)
-                {
-                p1->time_interrupt = std::min(p1->time_record + bse_manager.getTimeStepBinary(p1->star, p2->star, semi, ecc, binary_type_final), time_interrupt_max);
-                }
+                p1->time_interrupt = p12_time_interrupt_new;
                 p2->time_interrupt = p1->time_interrupt;
 
                 // reset collision state since binary orbit changes
@@ -1078,7 +1074,18 @@ public:
                     mtot = bse_manager.getMass(p1->star) + bse_manager.getMass(p2->star);
                     semi = COMM::Binary::periodToSemi(period, mtot, gravitational_constant);
 
-                    postProcess(out, pos_cm, vel_cm, semi, ecc, binary_type_final);
+                    // Compute time_record and next-interrupt time inside critical section:
+                    // getDTMiss reads BSE output; getTimeStepBinary calls getTimeStepStar
+                    // which calls Fortran trdot_/trflow_ writing /fall/fallback COMMON —
+                    // must be serialised with other threads' evolv1_/evolv2_ calls.
+                    double p1_tr_new, p2_tr_new, p12_ti_new;
+                    #pragma omp critical(bse_evolve)
+                    {
+                        p1_tr_new = _bin_interrupt.time_now - bse_manager.getDTMiss(out[0]);
+                        p2_tr_new = _bin_interrupt.time_now - bse_manager.getDTMiss(out[1]);
+                        p12_ti_new = std::min(p1_tr_new + bse_manager.getTimeStepBinary(p1->star, p2->star, semi, ecc, binary_type_final), time_interrupt_max);
+                    }
+                    postProcess(out, pos_cm, vel_cm, semi, ecc, binary_type_final, p1_tr_new, p2_tr_new, p12_ti_new);
                 }
             }
 #endif // BSE_BASE
@@ -1125,12 +1132,19 @@ public:
                         // that are not thread-safe; this critical section prevents concurrent access.
                         Float semi = _bin.semi;
                         Float ecc = _bin.ecc;
+                        double p1_tr_mg, p2_tr_mg, p12_ti_mg;
+                        int binary_type_mg = 0;
                         #pragma omp critical(bse_evolve)
                         {
                             bse_manager.merge(p1->star, p2->star, out[0], out[1], semi, ecc);
+                            // Compute next time steps here: getTimeStepBinary → getTimeStepStar
+                            // → Fortran trdot_/trflow_ writes /fall/fallback COMMON; must be serialised.
+                            p1_tr_mg = _bin_interrupt.time_now - bse_manager.getDTMiss(out[0]);
+                            p2_tr_mg = _bin_interrupt.time_now - bse_manager.getDTMiss(out[1]);
+                            p12_ti_mg = std::min(p1_tr_mg + bse_manager.getTimeStepBinary(p1->star, p2->star, semi, ecc, binary_type_mg), time_interrupt_max);
                         }
 
-                        postProcess(out, pos_cm, vel_cm, semi, ecc, 0);
+                        postProcess(out, pos_cm, vel_cm, semi, ecc, 0, p1_tr_mg, p2_tr_mg, p12_ti_mg);
                         if (stellar_evolution_write_flag&&(p1->mass==0.0||p2->mass==0.0)) {
 #pragma omp critical
                             {
