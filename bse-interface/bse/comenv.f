@@ -2,7 +2,8 @@
       SUBROUTINE COMENV(M01,M1,MC1,AJ1,JSPIN1,KW1,
      &                  M02,M2,MC2,AJ2,JSPIN2,KW2,
      &                  ZPARS,ECC,SEP,JORB,
-     &                  VKICK1,VKICK2,COEL)
+     &                  VKICK1,VKICK2,COEL,
+     &                  caseMT)
 *
 * Common Envelope Evolution.
 *
@@ -33,6 +34,8 @@
       integer ECS
       PARAMETER (AURSUN = 214.95D0,K3 = 0.21D0) 
 ****
+      INTEGER caseMT(2)
+****
       REAL*8 ftzacc
       PARAMETER (ftzacc=0.5D0)
 ****
@@ -53,7 +56,8 @@
       KW = KW1
       CALL star(KW1,M01,M1,TM1,TN,TSCLS1,LUMS,GB,ZPARS)
       CALL hrdiag(M01,AJ1,M1,TM1,TN,TSCLS1,LUMS,GB,ZPARS,
-     &     R1,L1,KW1,MC1,RC1,MENV,RENV,K21,fbfac,fbtot,mco,ecs)
+     &     R1,L1,KW1,MC1,RC1,MENV,RENV,K21,fbfac,fbtot,mco,ecs,
+     &     caseMT(1))
       OSPIN1 = JSPIN1/(K21*R1*R1*(M1-MC1)+K3*RC1*RC1*MC1)
       MENVD = MENV/(M1-MC1)
       RZAMS = RZAMSF(M01)
@@ -61,7 +65,8 @@
       KW = KW2
       CALL star(KW2,M02,M2,TM2,TN,TSCLS2,LUMS,GB,ZPARS)
       CALL hrdiag(M02,AJ2,M2,TM2,TN,TSCLS2,LUMS,GB,ZPARS,
-     &     R2,L2,KW2,MC2,RC2,MENV,RENV,K22,fbfac,fbtot,mco,ecs)
+     &     R2,L2,KW2,MC2,RC2,MENV,RENV,K22,fbfac,fbtot,mco,ecs,
+     &     caseMT(2))
       OSPIN2 = JSPIN2/(K22*R2*R2*(M2-MC2)+K3*RC2*RC2*MC2)
 *
 * Calculate the binding energy of the giant envelope (multiplied by lambda).
@@ -143,7 +148,8 @@
             M1 = MC1
             CALL star(KW1,M01,M1,TM1,TN,TSCLS1,LUMS,GB,ZPARS)
             CALL hrdiag(M01,AJ1,M1,TM1,TN,TSCLS1,LUMS,GB,ZPARS,
-     &           R1,L1,KW1,MC1,RC1,MENV,RENV,K21,fbfac,fbtot,mco,ecs)
+     &           R1,L1,KW1,MC1,RC1,MENV,RENV,K21,fbfac,fbtot,mco,ecs,
+     &           caseMT(1))
             IF(KW1.GE.13)THEN
                CALL kick(KW1,MF,M1,M2,ECC,SEPF,JORB,VKICK1,
      &              fbfac,fbtot,mco,ecs)
@@ -243,7 +249,8 @@
             M1 = MC1
             CALL star(KW1,M01,M1,TM1,TN,TSCLS1,LUMS,GB,ZPARS)
             CALL hrdiag(M01,AJ1,M1,TM1,TN,TSCLS1,LUMS,GB,ZPARS,
-     &           R1,L1,KW1,MC1,RC1,MENV,RENV,K21,fbfac,fbtot,mco,ecs)
+     &           R1,L1,KW1,MC1,RC1,MENV,RENV,K21,fbfac,fbtot,mco,ecs,
+     &           caseMT(1))
             IF(KW1.GE.13)THEN
                CALL kick(KW1,MF,M1,M2,ECC,SEPF,JORB,VKICK1,
      &              fbfac,fbtot,mco,ecs)
@@ -254,7 +261,8 @@
             M2 = MC2
             CALL star(KW2,M02,M2,TM2,TN,TSCLS2,LUMS,GB,ZPARS)
             CALL hrdiag(M02,AJ2,M2,TM2,TN,TSCLS2,LUMS,GB,ZPARS,
-     &           R2,L2,KW2,MC2,RC2,MENV,RENV,K22,fbfac,fbtot,mco,ecs)
+     &           R2,L2,KW2,MC2,RC2,MENV,RENV,K22,fbfac,fbtot,mco,ecs,
+     &           caseMT(2))
             IF(KW2.GE.13.AND.KW.LT.13)THEN
                CALL kick(KW2,MF,M2,M1,ECC,SEPF,JORB,VKICK2,
      &              fbfac,fbtot,mco,ecs)
@@ -348,7 +356,8 @@
             CALL star(KW,M01,M1,TM1,TN,TSCLS1,LUMS,GB,ZPARS)
          ENDIF
          CALL hrdiag(M01,AJ1,M1,TM1,TN,TSCLS1,LUMS,GB,ZPARS,
-     &        R1,L1,KW,MC1,RC1,MENV,RENV,K21,fbfac,fbtot,mco,ecs)
+     &        R1,L1,KW,MC1,RC1,MENV,RENV,K21,fbfac,fbtot,mco,ecs,
+     &        caseMT(1))
          JSPIN1 = OORB*(K21*R1*R1*(M1-MC1)+K3*RC1*RC1*MC1)
          KW1 = KW
          ECC = 0.D0

@@ -1,6 +1,7 @@
 ***
       SUBROUTINE hrdiag(mass,aj,mt,tm,tn,tscls,lums,GB,zpars,
-     &     r,lum,kw,mc,rc,menv,renv,k2,fbfac,fbtot,mco,ecs)
+     &     r,lum,kw,mc,rc,menv,renv,k2,fbfac,fbtot,mco,ecs,
+     &     caseMT)
 *
 *
 *       H-R diagram for population I stars.
@@ -51,6 +52,14 @@
       real*8 mcmax,mcx,mcy,mcbagb,lambda
       real*8 am,xx,fac,rdgen,mew,lum0,kap,zeta,ahe,aco
       parameter(lum0=7.0d+04,kap=-0.5d0,ahe=4.d0,aco=16.d0)
+*
+      real*8 met,logz,pf_prob
+      integer caseMT
+      INTEGER idum
+      COMMON /VALUE3/ idum
+      real ran3,u_NS
+      external ran3
+      real*8 Mco1,Mco2,Mco3
 *
       real*8 tprems,pre1,pre2,pre3,pre4
 *
@@ -618,7 +627,7 @@
                      else
                         mcx = 1.6d0
                      endif
-                  elseif(nsflag.ge.5)then
+                  elseif(nsflag.eq.5)then
 * Use remnant masses based on Eldridge & Tout 2004, MNRAS, 353, 87.
                      if(mc.lt.6.d0)then
                         mcx = 1.44d0
@@ -679,6 +688,56 @@
                      else
                         FBFAC = 1.0d0
                         FBTOT = FBFAC*(mt - mcx)
+                     endif
+                     mt = mcx + FBTOT
+                     MCO = mc
+                  endif
+                  if(nsflag.eq.6)then
+* Use remnant masses based on Maltsev et al. 2025
+                     if(mc.lt.5.62d0)then
+                        mcx = mxns
+                        FBFAC = 0.d0
+                        FBTOT = 0.d0
+                     elseif(mc.gt.16.18d0)then
+                        mcx = mc
+                        FBFAC = 1.d0
+                        FBTOT = FBFAC*(mt - mcx)
+                     endif
+                     met = 10**(LOG10(zpars(14))/0.4)
+                     logz = LOG10(met/0.01432d0)
+                     if(caseMT.eq.1)then
+                        Mco1 = 7.4d0 + (7.4d0-6.9d0)*logz
+                        Mco2 = 8.4d0 + (8.4d0-7.4d0)*logz
+                        Mco3 = 15.4d0 + (15.4d0-13.7d0)*logz
+                     elseif(caseMT.eq.2)then
+                        Mco1 = 7.7d0 + (7.7d0-6.9d0)*logz
+                        Mco2 = 8.3d0 + (8.3d0-7.9d0)*logz
+                        Mco3 = 15.2d0 + (15.2d0-13.7d0)*logz
+                     elseif(caseMT.eq.3)then
+                        Mco1 = 6.6d0 + (6.6d0-6.3d0)*logz
+                        Mco2 = 7.1d0 + (7.1d0-7.1d0)*logz
+                        Mco3 = 13.2d0 + (13.2d0-12.3d0)*logz
+                     else
+                        Mco1 = 6.6d0 + (6.6d0-6.1d0)*logz
+                        Mco2 = 7.2d0 + (7.2d0-6.6d0)*logz
+                        Mco3 = 13.0d0 + (13.0d0-12.9d0)*logz
+                     endif
+                     pf_prob = 0.1d0
+                     u_NS = rand(idum)
+                     if((mc.ge.Mco1.and.mc.le.Mco2).or.
+     &                        (mc.ge.Mco3))then
+                        mcx = mc
+                        FBFAC = 1.d0
+                        FBTOT = FBFAC*(mt - mcx)
+                     elseif(mc.gt.Mco2.and.mc.lt.Mco3.and.
+     &                        u_NS.lt.pf_prob)then
+                        mcx = mc
+                        FBFAC = 0.5d0
+                        FBTOT = FBFAC*(mt - mcx)
+                     else
+                        mcx = mxns
+                        FBFAC = 0.d0
+                        FBTOT = 0.d0
                      endif
                      mt = mcx + FBTOT
                      MCO = mc
@@ -870,7 +929,7 @@
                         else
                            mcx = 1.6d0
                         endif
-                     elseif(nsflag.ge.5)then
+                     elseif(nsflag.eq.5)then
                         if(mc.lt.6.d0)then
                            mcx = 1.44d0
                         else
@@ -927,6 +986,56 @@
                         else
                            FBFAC = 1.0d0
                            FBTOT = FBFAC*(mt - mcx)
+                        endif
+                        mt = mcx + FBTOT
+                        MCO = mc
+                     endif
+                     if(nsflag.eq.6)then
+* Use remnant masses based on Maltsev et al. 2025
+                        if(mc.lt.5.62d0)then
+                           mcx = mxns
+                           FBFAC = 0.d0
+                           FBTOT = 0.d0
+                        elseif(mc.gt.16.18d0)then
+                           mcx = mc
+                           FBFAC = 1.d0
+                           FBTOT = FBFAC*(mt - mcx)
+                        endif
+                        met = 10**(LOG10(zpars(14))/0.4)
+                        logz = LOG10(met/0.01432d0)
+                        if(caseMT.eq.1)then
+                           Mco1 = 7.4d0 + (7.4d0-6.9d0)*logz
+                           Mco2 = 8.4d0 + (8.4d0-7.4d0)*logz
+                           Mco3 = 15.4d0 + (15.4d0-13.7d0)*logz
+                        elseif(caseMT.eq.2)then
+                           Mco1 = 7.7d0 + (7.7d0-6.9d0)*logz
+                           Mco2 = 8.3d0 + (8.3d0-7.9d0)*logz
+                           Mco3 = 15.2d0 + (15.2d0-13.7d0)*logz
+                        elseif(caseMT.eq.3)then
+                           Mco1 = 6.6d0 + (6.6d0-6.3d0)*logz
+                           Mco2 = 7.1d0 + (7.1d0-7.1d0)*logz
+                           Mco3 = 13.2d0 + (13.2d0-12.3d0)*logz
+                        else
+                           Mco1 = 6.6d0 + (6.6d0-6.1d0)*logz
+                           Mco2 = 7.2d0 + (7.2d0-6.6d0)*logz
+                           Mco3 = 13.0d0 + (13.0d0-12.9d0)*logz
+                        endif
+                        pf_prob = 0.1d0
+                        u_NS = rand(idum)
+                        if((mc.ge.Mco1.and.mc.le.Mco2).or.
+     &                           (mc.ge.Mco3))then
+                           mcx = mc
+                           FBFAC = 1.d0
+                           FBTOT = FBFAC*(mt - mcx)
+                        elseif(mc.gt.Mco2.and.mc.lt.Mco3.and.
+     &                           u_NS.lt.pf_prob)then
+                           mcx = mc
+                           FBFAC = 0.5d0
+                           FBTOT = FBFAC*(mt - mcx)
+                        else
+                           mcx = mxns
+                           FBFAC = 0.d0
+                           FBTOT = 0.d0
                         endif
                         mt = mcx + FBTOT
                         MCO = mc

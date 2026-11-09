@@ -81,6 +81,7 @@ struct StarParameter{
     double epoch;  ///> starting time of one evolution phase, age = tphys - epoch
     double tphys;  ///> physical evolve time in Myr
     double lum;    ///> Landmark luminosities
+    long long int caseMT;   ///> mass transfer type
 #ifdef SEVN
     // Mass at the ZAMS of the current stellar track in solar units
     // (not necessarily equal to the actual ZAMS mass due to change of tracks)
@@ -110,8 +111,9 @@ struct StarParameter{
       @param[in] _kw: initial type (default: 1: MS)
       @param[in] _ospin: initial spin (default: 0.0)
       @param[in] _epoch: initial age for the given type (default: 0.0)
+      @param[in] _caseMT: initial mass transfer case (default: 0: no MT)
      */
-    void initial(double _mass, int _kw=1, double _ospin=0.0, double _epoch=0.0) {
+    void initial(double _mass, int _kw=1, double _ospin=0.0, double _epoch=0.0, int _caseMT=0) {
         kw = _kw;
         m0 = _mass;
         mt = _mass;
@@ -121,6 +123,7 @@ struct StarParameter{
         ospin = _ospin;
         epoch = _epoch;
         tphys = _epoch;
+	caseMT = _caseMT;
 
 #ifdef SEVN
         Mzams_SEVN = _mass;
@@ -142,8 +145,8 @@ struct StarParameter{
             this->Mzams_SEVN, this->MHE_SEVN, this->MCO_SEVN, this->Plife_SEVN, this->Phase_SEVN,
             this->RemnantType_SEVN);
 #else
-        fprintf(fp, "%lld %26.17e %26.17e %26.17e %26.17e %26.17e %26.17e %26.17e %26.17e %26.17e ",
-                this->kw, this->m0, this->mt, this->r, this->mc, this->rc, this->ospin, this->epoch, this->tphys, this->lum);
+        fprintf(fp, "%lld %26.17e %26.17e %26.17e %26.17e %26.17e %26.17e %26.17e %26.17e %26.17e %lld",
+                this->kw, this->m0, this->mt, this->r, this->mc, this->rc, this->ospin, this->epoch, this->tphys, this->lum, this->caseMT);
 #endif
     }
 
@@ -163,8 +166,8 @@ struct StarParameter{
             abort();
         }
 #else
-        int rcount=fscanf(fp, "%lld %lf %lf %lf %lf %lf %lf %lf %lf %lf ",
-                          &this->kw, &this->m0, &this->mt, &this->r, &this->mc, &this->rc, &this->ospin, &this->epoch, &this->tphys, & this->lum);
+        int rcount=fscanf(fp, "%lld %lf %lf %lf %lf %lf %lf %lf %lf %lf %lld",
+                          &this->kw, &this->m0, &this->mt, &this->r, &this->mc, &this->rc, &this->ospin, &this->epoch, &this->tphys, &this->lum, &this->caseMT);
         if(rcount<10) {
             std::cerr<<"Error: Data reading fails! requiring data number is 10, only obtain "<<rcount<<".\n";
             abort();
@@ -184,6 +187,7 @@ struct StarParameter{
             <<" epoch= "<<epoch
             <<" t[myr]= "<<tphys
             <<" lum[L*]= "<<lum
+            <<" caseMT= "<<caseMT
 #ifdef SEVN
             <<" Mzams_SEVN[M*]= "<<Mzams_SEVN
             <<" MHE_SEVN[M*]= "<<MHE_SEVN
@@ -238,6 +242,7 @@ struct StarParameter{
              <<std::setw(_width)<<epoch
              <<std::setw(_width)<<tphys
              <<std::setw(_width)<<lum
+             <<std::setw(_width)<<caseMT
 #ifdef SEVN
              <<std::setw(_width)<<Mzams_SEVN
              <<std::setw(_width)<<MHE_SEVN
@@ -277,6 +282,8 @@ struct StarParameter{
         _fout<<std::setw(_offset)<<" "<<counter<<". s_time: physical time [Myr]\n";
         counter++;
         _fout<<std::setw(_offset)<<" "<<counter<<". s_lum: luminosity [Lsun]\n";
+        counter++;
+        _fout<<std::setw(_offset)<<" "<<counter<<". caseMT: mass transfer case\n";
 #ifdef SEVN
         counter++;
         _fout<<std::setw(_offset)<<" "<<counter<<". s_Mzams_SEVN: ZAMS mass of the current stellar track [Msun]\n";
@@ -306,8 +313,9 @@ struct StarParameterOut{
     double tm;   ///> Main sequence lifetime
     double vkick[4]; ///> kick velocity for NS/BH formation
     double dm;   ///> mass loss
+    long long int caseMT0;   ///> original mass transfer case before evolution
 
-    StarParameterOut(): kw0(0), dtmiss(0.0), menv(0.0), renv(0.0), tm(0.0), vkick{0.0}, dm(0.0) {}
+    StarParameterOut(): kw0(0), dtmiss(0.0), menv(0.0), renv(0.0), tm(0.0), vkick{0.0}, dm(0.0), caseMT0(0) {}
 
     //! print titles of class members using column style
     /*! print titles of class members in one line for column style
@@ -323,7 +331,8 @@ struct StarParameterOut{
              <<std::setw(_width)<<"vk.y[km/s]"
              <<std::setw(_width)<<"vk.z[km/s]"
              <<std::setw(_width)<<"vk[km/s]"
-             <<std::setw(_width)<<"m_loss[M*]";
+             <<std::setw(_width)<<"m_loss[M*]"
+             <<std::setw(_width)<<"caseMT0";
     }
     
     //! print data of class members using column style
@@ -340,7 +349,8 @@ struct StarParameterOut{
              <<std::setw(_width)<<vkick[1]
              <<std::setw(_width)<<vkick[2]
              <<std::setw(_width)<<vkick[3]
-             <<std::setw(_width)<<dm;
+             <<std::setw(_width)<<dm
+             <<std::setw(_width)<<caseMT0;
     }
 
     //! for print in one line
@@ -353,7 +363,8 @@ struct StarParameterOut{
             <<" vk.y[km/s]= "<<vkick[1]
             <<" vk.z[km/s]= "<<vkick[2]
             <<" vk[km/s]= "<<vkick[3]
-            <<" m_loss[M*]= "<<dm;
+            <<" m_loss[M*]= "<<dm
+            <<" caseMT0= "<<caseMT0;
     }
 
 };
@@ -404,7 +415,7 @@ public:
 #ifdef SEVN
     double record[33][9];
 #else
-    double record[20][9];
+    double record[22][9];
 #endif
     //double record[20][81];
     //
@@ -435,6 +446,8 @@ public:
         record[17][_index] = _p2.rc;
         record[18][_index] = _p1.ospin;
         record[19][_index] = _p2.ospin;
+        record[20][_index] = _p1.caseMT;
+        record[21][_index] = _p2.caseMT;
     }
 
     //! set binary type to -1 for the given event index to indicate the end of record
@@ -478,6 +491,8 @@ public:
             <<" rc2[R*]= "<<record[17][index]
             <<" ospin1= "<<record[18][index]
             <<" ospin2= "<<record[19][index]
+            <<" caseMT1= "<<int(record[20][index])
+            <<" caseMT2= "<<int(record[21][index])
 #ifdef SEVN
             <<" Mzams_SEVN1[M*]= "<<record[20][index]
             <<" Mzams_SEVN2[M*]= "<<record[21][index]
@@ -521,7 +536,9 @@ public:
              <<std::setw(_width)<<"rc1[R*]"
              <<std::setw(_width)<<"rc2[R*]"
              <<std::setw(_width)<<"ospin1"
-             <<std::setw(_width)<<"ospin2";
+             <<std::setw(_width)<<"ospin2"
+             <<std::setw(_width)<<"caseMT1"
+             <<std::setw(_width)<<"caseMT2";
 
     }
 
@@ -539,7 +556,8 @@ public:
 #ifdef SEVN
         for (int i=10; i<33; i++) _fout<<std::setw(_width)<<record[i][_index];
 #else
-        for (int i=10; i<20; i++) _fout<<std::setw(_width)<<record[i][_index];
+	for (int i=10; i<20; i++) _fout<<std::setw(_width)<<record[i][_index];
+        for (int i=20; i<22; i++) _fout<<std::setw(_width)<<int(record[i][_index]);
 #endif
     }
 };
@@ -624,13 +642,13 @@ void instar_();
 void evolv1_(int* kw, double* mass, double* mt, double* r, double* lum, double* mc, double* rc, double* menv,
              double* renv, double* ospin,
              double* epoch, double* tm, double* tphys, double* tphysf, double* dtp, double* z, double* zpars,
-             double* vs);
+             double* vs, int* caseMT);
 
 //! BSE function for evolving one binary
 void evolv2_(int* kw, double* mass, double* mt, double* r, double* lum, double* mc, double* rc, double* menv,
              double* renv, double* ospin,
              double* epoch, double* tm, double* tphys, double* tphysf, double* dtp, double* z, double* zpars,
-             double* period, double* ecc, double* bse_event, double* vkick);
+             double* period, double* ecc, double* bse_event, double* vkick, int* caseMT);
 
 void star_(int* kw, double* mass, double* mt, double* tm, double* tn, double* tscls, double* lums, double* GB,
            double* zpars);
@@ -638,10 +656,10 @@ void star_(int* kw, double* mass, double* mt, double* tm, double* tn, double* ts
 void deltat_(int* kw, double* age, double* tm, double* tn, double* tscls, double* dt, double* dtr);
 
 void trdot_(int* kw, double* m0, double* mt, double* r, double* mc, double* rc, double* age, double* dt, double* dtr,
-            double* zpars);
+            double* zpars, int* caseMT);
 
 void trflow_(int* kw, double* m0, double* mt, double* r, double* mc, double* rc, double* age, double* dt, double* semi,
-             double* ecc, double* zpars);
+             double* ecc, double* zpars, int* caseMT);
 
 void mix_(double* m0, double* mt, double* age, int* kw, double* zpars);
 
@@ -650,7 +668,7 @@ void mix_(double* m0, double* mt, double* age, int* kw, double* zpars);
 //             double* zpars, double* ecc, double* sep, double* jorb, double* vkick1, double* vkick2, int* coel);
 
 void merge_(int* kw, double* m0, double* mt, double* r, double* mc, double* rc, double* menv, double* renv,
-            double* ospin, double* age, double* semi, double* ecc, double* vkick, double* zpars);
+            double* ospin, double* age, double* semi, double* ecc, double* vkick, double* zpars, int* caseMT);
 
 void printconst_();
 }
@@ -1735,15 +1753,18 @@ public:
         double dtp=tphysf*100.0+1000.0;
         _out.dm = _star.mt;
         _out.kw0 = _star.kw;
+        _out.caseMT0 = _star.caseMT;
 #ifdef SEVN
         evolv1_SEVN(&_star, &_out, &tphysf, &z, &input_params_SEVN);
 #else
         int kw = _star.kw;
+        int caseMT = _star.caseMT;
         evolv1_(&kw, &_star.m0, &_star.mt, &_star.r, 
                 &_star.lum, &_star.mc, &_star.rc, &_out.menv, &_out.renv, 
                 &_star.ospin, &_star.epoch, 
-                &_out.tm, &_star.tphys, &tphysf, &dtp, &z, zpars, _out.vkick);
+                &_out.tm, &_star.tphys, &tphysf, &dtp, &z, zpars, _out.vkick, &caseMT);
         _star.kw = kw;
+        _star.caseMT = caseMT;
 #endif
         _out.dm = _star.mt - _out.dm;
         _out.dtmiss = tphysf - _star.tphys;
@@ -1880,6 +1901,7 @@ public:
 
 #else
         int kw[2];
+	int caseMT[2];
         double m0[2],mt[2],r[2],lum[2],mc[2],rc[2],menv[2],renv[2],ospin[2],epoch[2],tm[2],vkick[8];
         for (int k =0; k<4; k++) {
             vkick[k]  = _out1.vkick[k];
@@ -1888,6 +1910,7 @@ public:
 
 
         kw[0] = _star1.kw;
+	caseMT[0] = _star1.caseMT;
         m0[0] = _star1.m0;
         mt[0] = _star1.mt;
         r[0]  = _star1.r;
@@ -1897,6 +1920,7 @@ public:
         epoch[0] = _star1.epoch;
  
         kw[1] = _star2.kw;
+	caseMT[1] = _star2.caseMT;
         m0[1] = _star2.m0;
         mt[1] = _star2.mt;
         r[1]  = _star2.r;
@@ -1905,10 +1929,11 @@ public:
         ospin[1] = _star2.ospin;
         epoch[1] = _star2.epoch;
 
-        evolv2_(kw, m0, mt, r, lum, mc, rc, menv, renv, ospin, epoch, tm, &tphys, &tphysf, &dtp, &z, zpars, &period_days, &_ecc, _bse_event.record[0], vkick);
+        evolv2_(kw, m0, mt, r, lum, mc, rc, menv, renv, ospin, epoch, tm, &tphys, &tphysf, &dtp, &z, zpars, &period_days, &_ecc, _bse_event.record[0], vkick, caseMT);
         _period = period_days/myr_to_day/tscale;
 
         _star1.kw = kw[0];
+        _star1.caseMT = caseMT[0];
         _star1.m0 = m0[0];
         _star1.mt = mt[0];
         _star1.r  = r[0];
@@ -1920,6 +1945,7 @@ public:
         _star1.lum    = lum[0];
 
         _star2.kw = kw[1];
+        _star2.caseMT = caseMT[1];
         _star2.m0 = m0[1];
         _star2.mt = mt[1];
         _star2.r  = r[1];
@@ -2006,6 +2032,7 @@ public:
 #else
         double m0[2],mt[2],r[2],mc[2],rc[2],menv[2],renv[2],ospin[2],age[2],vkick[8];
         int kw[2];
+        int caseMT[2];
 
         for (int k =0; k<4; k++) {
             vkick[k]  = _out1.vkick[k];
@@ -2013,6 +2040,7 @@ public:
         }
 
         kw[0] = _star1.kw;
+        caseMT[0] = _star1.caseMT;
         m0[0] = _star1.m0;
         mt[0] = _star1.mt;
         r[0]  = _star1.r;
@@ -2022,6 +2050,7 @@ public:
         age[0]= _star1.tphys-_star1.epoch;
 
         kw[1] = _star2.kw;
+        caseMT[1] = _star2.caseMT;
         m0[1] = _star2.m0;
         mt[1] = _star2.mt;
         r[1]  = _star2.r;
@@ -2030,9 +2059,10 @@ public:
         ospin[1] = _star2.ospin;
         age[1]= _star2.tphys-_star2.epoch;
 
-        merge_(kw, m0, mt, r, mc, rc, menv, renv, ospin, age, &semi_rsun, &_ecc, vkick, zpars);
+        merge_(kw, m0, mt, r, mc, rc, menv, renv, ospin, age, &semi_rsun, &_ecc, vkick, zpars, caseMT);
 
         _star1.kw = kw[0];
+        _star1.caseMT = caseMT[0];
         _star1.m0 = m0[0];
         _star1.mt = mt[0];
         _star1.r  = r[0];
@@ -2042,6 +2072,7 @@ public:
         _star1.epoch = _star1.tphys - age[0];
 
         _star2.kw = kw[1];
+        _star2.caseMT = caseMT[1];
         _star2.m0 = m0[1];
         _star2.mt = mt[1];
         _star2.r  = r[1];
@@ -2100,6 +2131,7 @@ public:
 #else
         // make a copy to avoid overwriting the origin values
         int kw = _star.kw;
+        int caseMT = _star.caseMT;
         double m0 = _star.m0;
         double mt = _star.mt;
         double r = _star.r;
@@ -2108,7 +2140,7 @@ public:
         double age = _star.tphys-_star.epoch;
         double dtm, dtr;
         // get next step
-        trdot_(&kw, &m0, &mt, &r, &mc, &rc, &age, &dtm, &dtr, zpars);
+        trdot_(&kw, &m0, &mt, &r, &mc, &rc, &age, &dtm, &dtr, zpars, &caseMT);
 
         //assert(dtr>0.0);
         //assert(dtm>0.0);
@@ -2146,8 +2178,10 @@ public:
         }
         else if (isMassTransfer(_binary_type)) {
             int kw[2];
+            int caseMT[2];
             double m0[2],mt[2],r[2],mc[2],rc[2],age[2];
             kw[0] = _star1.kw;
+            caseMT[0] = _star1.caseMT;
             m0[0] = _star1.m0;
             mt[0] = _star1.mt;
             r[0]  = _star1.r;
@@ -2156,6 +2190,7 @@ public:
             age[0]= _star1.tphys-_star1.epoch;
 
             kw[1] = _star2.kw;
+            caseMT[1] = _star2.caseMT;
             m0[1] = _star2.m0;
             mt[1] = _star2.mt;
             r[1]  = _star2.r;
@@ -2165,7 +2200,7 @@ public:
 
             double dtr;
             double semi_rsun = _semi*rscale;
-            trflow_(kw,m0,mt,r,mc,rc,age,&dtr,&semi_rsun,&_ecc,zpars);
+            trflow_(kw,m0,mt,r,mc,rc,age,&dtr,&semi_rsun,&_ecc,zpars,caseMT);
             dt = std::min(dt,dtr);
 
         }
@@ -2204,8 +2239,10 @@ public:
             // check Roche overflow
             if (isRocheFill(_star1, _star2, _semi, _ecc)) {
                 int kw[2];
+                int caseMT[2];
                 double m0[2],mt[2],r[2],mc[2],rc[2],age[2];
                 kw[0] = _star1.kw;
+                caseMT[0] = _star1.caseMT;
                 m0[0] = _star1.m0;
                 mt[0] = _star1.mt;
                 r[0]  = _star1.r;
@@ -2214,6 +2251,7 @@ public:
                 age[0]= _star1.tphys-_star1.epoch;
 
                 kw[1] = _star2.kw;
+                caseMT[1] = _star2.caseMT;
                 m0[1] = _star2.m0;
                 mt[1] = _star2.mt;
                 r[1]  = _star2.r;
@@ -2223,7 +2261,7 @@ public:
 
                 double dtr;
                 double semi_rsun = _semi*rscale;
-                trflow_(kw,m0,mt,r,mc,rc,age,&dtr,&semi_rsun,&_ecc,zpars);
+                trflow_(kw,m0,mt,r,mc,rc,age,&dtr,&semi_rsun,&_ecc,zpars,caseMT);
                 if (dtr<_dt*tscale) return true;
             }
         }

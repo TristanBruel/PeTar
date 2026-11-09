@@ -1,6 +1,6 @@
 ***
       SUBROUTINE TRFLOW(kstar,mass0,mass,rad,massc,radc,age,
-     &     dtr,semi,ecc,zpars)
+     &     dtr,semi,ecc,zpars,caseMT)
       implicit none
 *
 *
@@ -17,6 +17,7 @@
       REAL*8  AJ,RHIGH,THIGH,T,RR,RX,TLOW,RLOW,DEL,DER,EPS,TOL
       real*8 FBFAC,FBTOT,MCO
       integer ECS
+      INTEGER caseMT
       PARAMETER (EPS=1.0D-06, TOL=1.0D-04, aursun=2.1493370240907944d2)
       REAL*8 RL,RTMSF,RGBF,RGBDF,RAGBF,RAGBDF,RZHEF
       EXTERNAL RL,RTMSF,RGBF,RGBDF,RAGBF,RAGBDF,RZHEF
@@ -58,7 +59,8 @@
       KW = KSTAR(I1)
       CALL star(KW,M0,M1,TM,TN,TSCLS,LUMS,GB,ZPARS)
       CALL hrdiag(M0,AGE(I1),M1,TM,TN,TSCLS,LUMS,GB,ZPARS,
-     &            RSJ,LUM,KW,MC,RC,MENV,RENV,K2,fbfac,fbtot,mco,ecs)
+     &            RSJ,LUM,KW,MC,RC,MENV,RENV,K2,fbfac,fbtot,mco,ecs,
+     &            caseMT)
 *
 * If the star already fills its Roche lobe or will fill after peri-center, return one period
 *
@@ -83,7 +85,8 @@
       IF(KW.LE.1.OR.KW.EQ.7)THEN
          AJ = 0.99D0*TM
          CALL hrdiag(M0,AJ,M1,TM,TN,TSCLS,LUMS,GB,ZPARS,
-     &        RHIGH,LUM,KW,MC,RC,MENV,RENV,K2,fbfac,fbtot,mco,ecs)
+     &        RHIGH,LUM,KW,MC,RC,MENV,RENV,K2,fbfac,fbtot,mco,ecs,
+     &        caseMT)
          IF(RHIGH.GT.RL1.AND.AJ.GT.AGE(I1))THEN
 * Find the overflow time using binary chopping.
             TLOW = AGE(I1)
@@ -92,7 +95,8 @@
             IT = 0
    10       T = 0.5D0*(THIGH + TLOW)
             CALL hrdiag(M0,T,M1,TM,TN,TSCLS,LUMS,GB,ZPARS,
-     &           RR,LUM,KW,MC,RC,MENV,RENV,K2,fbfac,fbtot,mco,ecs)
+     &           RR,LUM,KW,MC,RC,MENV,RENV,K2,fbfac,fbtot,mco,ecs,
+     &           caseMT)
             IF(RR.LT.RL1)THEN
                TLOW = T
                RLOW = RR
@@ -118,7 +122,8 @@
       IF(KW.LE.2)THEN
          AJ = MIN(TN,TSCLS(1))*(1.D0-EPS)
          CALL hrdiag(M0,AJ,M1,TM,TN,TSCLS,LUMS,GB,ZPARS,
-     &        RHIGH,LUM,KW,MC,RC,MENV,RENV,K2,fbfac,fbtot,mco,ecs)
+     &        RHIGH,LUM,KW,MC,RC,MENV,RENV,K2,fbfac,fbtot,mco,ecs,
+     &        caseMT)
          IF(RHIGH.GT.RL1.AND.AJ.GT.AGE(I1))THEN
 * Solve for the overflow time.
             RR = RTMSF(M0)
@@ -135,7 +140,8 @@
       IF(KW.LE.3)THEN
          AJ = MIN(TN,TSCLS(2))*(1.D0-EPS)
          CALL hrdiag(M0,AJ,M1,TM,TN,TSCLS,LUMS,GB,ZPARS,
-     &        RHIGH,LUM,KW,MC,RC,MENV,RENV,K2,fbfac,fbtot,mco,ecs)
+     &        RHIGH,LUM,KW,MC,RC,MENV,RENV,K2,fbfac,fbtot,mco,ecs,
+     &        caseMT)
          IF(RHIGH.GE.RL1)THEN
 * Solve for the luminosity corresponding to the Roche radius and
 * then for the overflow time.
@@ -177,7 +183,8 @@
             T = MAX(TSCLS(2),AGE(I1))
             AJ = T + 0.5D0*(TN - T)
             CALL hrdiag(M0,AJ,M1,TM,TN,TSCLS,LUMS,GB,ZPARS,
-     &           RHIGH,LUM,KW,MC,RC,MENV,RENV,K2,fbfac,fbtot,mco,ecs)
+     &           RHIGH,LUM,KW,MC,RC,MENV,RENV,K2,fbfac,fbtot,mco,ecs,
+     &           caseMT)
             IF(RHIGH.LT.RL1)THEN
 * If the evolution is due to end during CHeB then the pertubation
 * functions for small envelope mass will take effect at some point
@@ -189,7 +196,8 @@
          ELSE
             AJ = (TSCLS(2)+TSCLS(3))*(1.D0-EPS)
             CALL hrdiag(M0,AJ,M1,TM,TN,TSCLS,LUMS,GB,ZPARS,
-     &           RHIGH,LUM,KW,MC,RC,MENV,RENV,K2,fbfac,fbtot,mco,ecs)
+     &           RHIGH,LUM,KW,MC,RC,MENV,RENV,K2,fbfac,fbtot,mco,ecs,
+     &           caseMT)
             IF(RHIGH.LT.RL1) GOTO 50
          ENDIF
 * Find the overflow time using binary chopping.
@@ -199,7 +207,8 @@
          IT = 0
  60      T = 0.5D0*(THIGH + TLOW)
          CALL hrdiag(M0,T,M1,TM,TN,TSCLS,LUMS,GB,ZPARS,
-     &        RR,LUM,KW,MC,RC,MENV,RENV,K2,fbfac,fbtot,mco,ecs)
+     &        RR,LUM,KW,MC,RC,MENV,RENV,K2,fbfac,fbtot,mco,ecs,
+     &        caseMT)
          IF(RR.LT.RL1)THEN
             TLOW = T
             RLOW = RR

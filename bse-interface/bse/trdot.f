@@ -1,5 +1,5 @@
 ***
-      SUBROUTINE trdot(kw,m0,m1,rm,mc,rc,age,dt,dtr,zpars)
+      SUBROUTINE trdot(kw,m0,m1,rm,mc,rc,age,dt,dtr,zpars,caseMT)
       implicit none
 *
       INTEGER kw,kw0,it
@@ -11,6 +11,7 @@
       REAL*8 pts1,pts2,pts3,eps,alpha2,tol
       real*8 FBFAC,FBTOT,MCO
       integer ECS
+      INTEGER caseMT
       COMMON /POINTS/ pts1,pts2,pts3
       PARAMETER(eps=1.0d-06,alpha2=0.09d0,tol=1.0d-10)
 *
@@ -19,7 +20,8 @@
       M10 = M1
       CALL star(KW,M0,M1,TM,TN,TSCLS,LUMS,GB,ZPARS)
       CALL hrdiag(M0,AGE,M1,TM,TN,TSCLS,LUMS,GB,ZPARS,
-     &            RM,LUM,KW,MC,RC,MENV,RENV,K2,fbfac,fbtot,mco,ecs)
+     &            RM,LUM,KW,MC,RC,MENV,RENV,K2,fbfac,fbtot,mco,ecs,
+     &            caseMT)
 
 *       Quit if there is a change of type at the current TEV.
       if((kw0.le.6.and.kw.gt.6).or.
@@ -99,7 +101,8 @@
 *
          age = MAX(age,age*(1.d0-eps) + dtr)
          CALL hrdiag(M0,AGE,M1,TM,TN,TSCLS,LUMS,GB,ZPARS,
-     &               RM,LUM,KW,MC1,RC,MENV,RENV,K2,fbfac,fbtot,mco,ecs)
+     &               RM,LUM,KW,MC1,RC,MENV,RENV,K2,fbfac,fbtot,mco,ecs,
+     &               caseMT)
          dr = rm - rm0
          if(ABS(dr).gt.0.1*rm0)then
             dt = dtr - age0*eps
@@ -119,7 +122,8 @@
    20 age = age0 + dt
       mc1 = mc
       CALL hrdiag(M0,AGE,M1,TM,TN,TSCLS,LUMS,GB,ZPARS,
-     &            RM,LUM,KW,MC1,RC,MENV,RENV,K2,fbfac,fbtot,mco,ecs)
+     &            RM,LUM,KW,MC1,RC,MENV,RENV,K2,fbfac,fbtot,mco,ecs,
+     &            caseMT)
       dr = rm - rm0
       it = it + 1
       if(it.eq.20.and.kw.eq.4) goto 30

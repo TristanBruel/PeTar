@@ -1,6 +1,6 @@
 ***
       SUBROUTINE MERGE(kstar,mass0,mass,rad,massc,radc,menv,renv,ospin,
-     &     age,semi,ecc,vkick,zpars)
+     &     age,semi,ecc,vkick,zpars,caseMT)
       implicit none
 *
 *
@@ -15,6 +15,7 @@
       REAL*8  MENV(2),RENV(2),K2,ospin(2),jspin(2),jorb,vkick(8)
       real*8 FBFAC,FBTOT,MCO,k3,EPS,TOL
       integer ECS
+      integer caseMT(2)
       PARAMETER (EPS = 1.0D-06, TOL = 1.0D-04, k3=0.21d0)
       REAL*8 RL
       EXTERNAL RL
@@ -47,7 +48,8 @@
      &           lums,GB,zpars)
             CALL hrdiag(mass0(k),age(k),mass(k),tm,tn,tscls,lums,
      &           GB,zpars,rad(k),lum,kstar(k),massc(k),radc(k),
-     &           menv(k),renv(k),k2,fbfac,fbtot,mco,ecs)
+     &           menv(k),renv(k),k2,fbfac,fbtot,mco,ecs,
+     &           caseMT(k))
             jspin(k) = ospin(k)*(k2*rad(k)*rad(k)*(mass(k)-massc(k))
      &           +k3*radc(k)*radc(k)*massc(k))
          END DO
@@ -55,7 +57,7 @@
          CALL comenv(mass0(i1),mass(i1),massc(i1),age(i1),jspin(i1),
      &        kstar(i1),mass0(i2),mass(i2),massc(i2),age(i2),
      &        jspin(i2),kstar(i2),zpars,ecc,semi,jorb,
-     &        vkick(4*(i1-1)+1),vkick(4*(i2-1)+1),coel)
+     &        vkick(4*(i1-1)+1),vkick(4*(i2-1)+1),coel,caseMT)
          
       ELSE
          CALL MIX(mass0,mass,age,kstar,zpars)

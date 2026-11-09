@@ -2,7 +2,7 @@
       SUBROUTINE evolv2(kstar,mass0,mass,rad,lumin,massc,radc,
      &                  menv,renv,ospin,epoch,tms,
      &                  tphys,tphysf,dtp,z,zpars,tb,ecc,
-     &                  bpp,vkick)
+     &                  bpp,vkick,caseMT)
       implicit none
 ***
 *
@@ -192,6 +192,7 @@
       COMMON /VALUE5/ beta,xi,acc2,epsnov,eddfac,gamma
       real*8 FBFAC,FBTOT,MCO
       integer ECS
+      integer caseMT(2),cMT
 *
       REAL*8 z,tm,tn,m0,mt,rm,lum,mc,rc,me,re,k2,age,dtm,dtr
       REAL*8 tscls(20),lums(10),GB(10),zpars(20)
@@ -321,7 +322,8 @@
          rc = radc(k)
          CALL star(kstar(k),mass0(k),mass(k),tm,tn,tscls,lums,GB,zpars)
          CALL hrdiag(mass0(k),age,mass(k),tm,tn,tscls,lums,GB,zpars,
-     &        rm,lum,kstar(k),mc,rc,me,re,k2,fbfac,fbtot,mco,ecs)
+     &        rm,lum,kstar(k),mc,rc,me,re,k2,fbfac,fbtot,mco,ecs,
+     &        caseMT(k))
          aj(k) = age
          epoch(k) = tphys - age
          rad(k) = rm
@@ -762,6 +764,7 @@
          age = tphys - epoch(k)
          aj0(k) = age
          kw = kstar(k)
+         cMT = caseMT(k)
          m0 = mass0(k)
          mt = mass(k)
          mc = massc(k)
@@ -779,7 +782,8 @@
 *
          CALL star(kw,m0,mt,tm,tn,tscls,lums,GB,zpars)
          CALL hrdiag(m0,age,mt,tm,tn,tscls,lums,GB,zpars,
-     &        rm,lum,kw,mc,rc,me,re,k2,fbfac,fbtot,mco,ecs)
+     &        rm,lum,kw,mc,rc,me,re,k2,fbfac,fbtot,mco,ecs,
+     &        cMT)
 *
          if(kw.eq.15)then
             kstar(k)= kw
@@ -1041,6 +1045,14 @@
 * Test whether Roche lobe overflow has begun.
 *
       if(rad(j1).gt.rol(j1))then
+* Identify the case of mass transfer
+         if(kstar(j1).le.1.and.caseMT(j1).eq.0)then
+            caseMT(j1) = 1
+         elseif(kstar(j1).le.3.and.caseMT(j1).eq.0)then
+            caseMT(j1) = 2
+         elseif(kstar(j1).gt.3.and.caseMT(j1).eq.0)then
+            caseMT(j1) = 3
+         endif
 *
 * Interpolate back until the primary is just filling its Roche lobe.
 *
@@ -1392,7 +1404,7 @@
          CALL comenv(mass0(j1),mass(j1),massc(j1),aj(j1),jspin(j1),
      &               kstar(j1),mass0(j2),mass(j2),massc(j2),aj(j2),
      &               jspin(j2),kstar(j2),zpars,ecc,sep,jorb,
-     &               vkick(4*(j1-1)+1),vkick(4*(j2-1)+1),coel)
+     &               vkick(4*(j1-1)+1),vkick(4*(j2-1)+1),coel,caseMT)
 *
          jp = MIN(jpmax,jp + 1)
          bpp(jp,1) = tphys
@@ -2128,9 +2140,11 @@
 *           goto 140
 *        endif
          kw = kstar(k)
+         cMT = caseMT(k)
          CALL star(kw,m0,mt,tm,tn,tscls,lums,GB,zpars)
          CALL hrdiag(m0,age,mt,tm,tn,tscls,lums,GB,zpars,
-     &        rm,lum,kw,mc,rc,me,re,k2,fbfac,fbtot,mco,ecs)
+     &        rm,lum,kw,mc,rc,me,re,k2,fbfac,fbtot,mco,ecs,
+     &        cMT)
 *
          if(kw.eq.15)then
             kstar(k) = kw
@@ -2161,6 +2175,7 @@
                snova = .true.
             endif
             mass(k) = mt
+            caseMT(k) = cMT
             if(kw.eq.15)then
                kstar(k) = kw
                goto 135
@@ -2185,6 +2200,7 @@
 *
          aj(k) = age
          kstar(k) = kw
+         caseMT(k) = cMT
          rad(k) = rm
          radx(k) = rm
          lumin(k) = lum
@@ -2402,13 +2418,13 @@
          CALL comenv(mass0(j1),mass(j1),massc(j1),aj(j1),jspin(j1),
      &               kstar(j1),mass0(j2),mass(j2),massc(j2),aj(j2),
      &               jspin(j2),kstar(j2),zpars,ecc,sep,jorb,
-     &               vkick(4*(j1-1)+1),vkick(4*(j2-1)+1),coel)
+     &               vkick(4*(j1-1)+1),vkick(4*(j2-1)+1),coel,caseMT)
          com = .true.
       elseif(kstar(j2).ge.2.and.kstar(j2).le.9.and.kstar(j2).ne.7)then
          CALL comenv(mass0(j2),mass(j2),massc(j2),aj(j2),jspin(j2),
      &               kstar(j2),mass0(j1),mass(j1),massc(j1),aj(j1),
      &               jspin(j1),kstar(j1),zpars,ecc,sep,jorb,
-     &               vkick(4*(j2-1)+1),vkick(4*(j1-1)+1),coel)
+     &               vkick(4*(j2-1)+1),vkick(4*(j1-1)+1),coel,caseMT)
          com = .true.
       else
          CALL mix(mass0,mass,aj,kstar,zpars)
