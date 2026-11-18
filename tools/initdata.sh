@@ -140,8 +140,8 @@ if [[ $seflag != 'no' ]]; then
 	echo 'Stellar radius (0): " $radius
 	awk '{OFMT="%.15g"; print '"$base_col$se_col$soft_col"'}' $fout.scale__ >>$fout
     elif [[ "$seflag" == *"bse"* ]]; then
-	#       type, m0,  m,     rad, mc,  rc,  spin, epoch, time, lum
-	bse_col='1, $1*ms, $1*ms, 0.0, 0.0, 0.0, 0.0,  0.0,   0.0,  0.0,'
+	#       type, m0,  m,     rad, mc,  rc,  spin, epoch, time, lum, caseMT
+	bse_col='1, $1*ms, $1*ms, 0.0, 0.0, 0.0, 0.0,  0.0,   0.0,  0.0, 0,'
 
 	echo 'Interrupt mode: '$seflag
 	echo 'mass scale from PeTar unit (PT) to Msun (m[Msun] = m[PT]*mscale): ' $mscale

@@ -43,11 +43,12 @@ class SSEStarParameter(DictNpArrayMix):
         epoch (1D): time offset at each evolution stage (Myr)
         time  (1D): current physical time (Myr)
         lum   (1D): bolometric luminosity (Lsun)
+        caseMT (1D): mass transfer case (0: none; 1: A; 2: B; 3: C), used by the Maltsev+25 remnant prescription
     """
     def __init__(self, _dat=None, _offset=int(0), _append=False, **kwargs):
         """ DictNpArrayMix type initialzation, see help(DictNpArrayMix.__init__)
         """
-        keys = [['type',np.int64],['mass0',np.float64],['mass',np.float64],['rad',np.float64],['mcore',np.float64],['rcore',np.float64],['spin',np.float64],['epoch',np.float64],['time',np.float64],['lum',np.float64]]
+        keys = [['type',np.int64],['mass0',np.float64],['mass',np.float64],['rad',np.float64],['mcore',np.float64],['rcore',np.float64],['spin',np.float64],['epoch',np.float64],['time',np.float64],['lum',np.float64],['caseMT',np.int64]]
         DictNpArrayMix.__init__(self, keys, _dat, _offset, _append, **kwargs)
 
 class SEVNStarParameter(DictNpArrayMix):
@@ -233,6 +234,8 @@ class BSEBinaryEvent(DictNpArrayMix):
             rcore2 (1D): core radius of component 2 (Rsun)
             spin1  (1D): stellar rotation of component 1 
             spin2  (1D): stellar rotation of component 2 
+            caseMT1 (1D): mass transfer case of component 1 (BSE mode only, not SEVN)
+            caseMT2 (1D): mass transfer case of component 2 (BSE mode only, not SEVN)
 
         if keyword argument "base_output" == False (default)
            class members: Base + Add
@@ -248,7 +251,8 @@ class BSEBinaryEvent(DictNpArrayMix):
             keys_sevn = [['Mzams_SEVN1', np.float64],['Mzams_SEVN2', np.float64],['MHE_SEVN1', np.float64],['MHE_SEVN2',np.float64],['MCO_SEVN1',np.float64],['MCO_SEVN2',np.float64],['Plife_SEVN1',np.float64],['Plife_SEVN2',np.float64],['Phase_SEVN1',np.int64],['Phase_SEVN2',np.int64],['RemnantType_SEVN1',np.int64],['RemnantType_SEVN2',np.int64],['BEvent_SEVN',np.int64]]
             keys = keys_base + keys_add + keys_sevn
         else:
-            keys = keys_base + keys_add
+            keys_mt = [['caseMT1', np.int64],['caseMT2', np.int64]]
+            keys = keys_base + keys_add + keys_mt
         if ('base_output' in kwargs.keys()):
             if kwargs['base_output']:
                 keys = keys_base
@@ -572,11 +576,12 @@ class SSEStarParameterOut(DictNpArrayMix):
          tm  (1D): Main sequence lifetime (Myr)
          vkick (2D,4): kick velocity for NS/BH formation, vx, vy, vz, |v|
          dm (1D): mass loss (Msun)
+         caseMT0 (1D): original mass transfer case before evolution
     """
     def __init__(self, _dat=None, _offset=int(0), _append=False, **kwargs):
         """ DictNpArrayMix type initialzation, see help(DictNpArrayMix.__init__)
         """
-        keys = [['type0', np.int64], ['menv', np.float64], ['renv', np.float64], ['tm', np.float64], ['vkick', (np.float64, 4)], ['dm', np.float64]]
+        keys = [['type0', np.int64], ['menv', np.float64], ['renv', np.float64], ['tm', np.float64], ['vkick', (np.float64, 4)], ['dm', np.float64], ['caseMT0', np.int64]]
         DictNpArrayMix.__init__(self, keys, _dat, _offset, _append, **kwargs)
 
 class SSEISO(DictNpArrayMix):

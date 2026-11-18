@@ -145,7 +145,7 @@ struct StarParameter{
             this->Mzams_SEVN, this->MHE_SEVN, this->MCO_SEVN, this->Plife_SEVN, this->Phase_SEVN,
             this->RemnantType_SEVN);
 #else
-        fprintf(fp, "%lld %26.17e %26.17e %26.17e %26.17e %26.17e %26.17e %26.17e %26.17e %26.17e %lld",
+        fprintf(fp, "%lld %26.17e %26.17e %26.17e %26.17e %26.17e %26.17e %26.17e %26.17e %26.17e %lld ",
                 this->kw, this->m0, this->mt, this->r, this->mc, this->rc, this->ospin, this->epoch, this->tphys, this->lum, this->caseMT);
 #endif
     }
@@ -166,10 +166,11 @@ struct StarParameter{
             abort();
         }
 #else
-        int rcount=fscanf(fp, "%lld %lf %lf %lf %lf %lf %lf %lf %lf %lf %lld",
+        int rcount=fscanf(fp, "%lld %lf %lf %lf %lf %lf %lf %lf %lf %lf %lld ",
                           &this->kw, &this->m0, &this->mt, &this->r, &this->mc, &this->rc, &this->ospin, &this->epoch, &this->tphys, &this->lum, &this->caseMT);
-        if(rcount<10) {
-            std::cerr<<"Error: Data reading fails! requiring data number is 10, only obtain "<<rcount<<".\n";
+        if(rcount<11) {
+            std::cerr<<"Error: StarParameter data reading fails! requiring data number is 11, only obtain "<<rcount<<".\n";
+            std::cerr<<"Check whether the input file has the caseMT column (BSE stellar columns: type, m0, m, rad, mc, rc, spin, epoch, time, lum, caseMT)\n";
             abort();
         }
 #endif
@@ -187,7 +188,9 @@ struct StarParameter{
             <<" epoch= "<<epoch
             <<" t[myr]= "<<tphys
             <<" lum[L*]= "<<lum
+#ifndef SEVN
             <<" caseMT= "<<caseMT
+#endif
 #ifdef SEVN
             <<" Mzams_SEVN[M*]= "<<Mzams_SEVN
             <<" MHE_SEVN[M*]= "<<MHE_SEVN
@@ -215,6 +218,9 @@ struct StarParameter{
              <<std::setw(_width)<<"s_epoch[Myr]"
              <<std::setw(_width)<<"s_time[Myr]"
              <<std::setw(_width)<<"s_lum[L*]"
+#ifndef SEVN
+             <<std::setw(_width)<<"s_caseMT"
+#endif
 #ifdef SEVN
              <<std::setw(_width)<<"s_Mzams_SEVN[M*]"
              <<std::setw(_width)<<"s_MHE_SEVN[M*]"
@@ -242,7 +248,9 @@ struct StarParameter{
              <<std::setw(_width)<<epoch
              <<std::setw(_width)<<tphys
              <<std::setw(_width)<<lum
+#ifndef SEVN
              <<std::setw(_width)<<caseMT
+#endif
 #ifdef SEVN
              <<std::setw(_width)<<Mzams_SEVN
              <<std::setw(_width)<<MHE_SEVN
@@ -282,8 +290,10 @@ struct StarParameter{
         _fout<<std::setw(_offset)<<" "<<counter<<". s_time: physical time [Myr]\n";
         counter++;
         _fout<<std::setw(_offset)<<" "<<counter<<". s_lum: luminosity [Lsun]\n";
+#ifndef SEVN
         counter++;
-        _fout<<std::setw(_offset)<<" "<<counter<<". caseMT: mass transfer case\n";
+        _fout<<std::setw(_offset)<<" "<<counter<<". s_caseMT: mass transfer case (0: none; 1: A; 2: B; 3: C)\n";
+#endif
 #ifdef SEVN
         counter++;
         _fout<<std::setw(_offset)<<" "<<counter<<". s_Mzams_SEVN: ZAMS mass of the current stellar track [Msun]\n";
@@ -446,8 +456,11 @@ public:
         record[17][_index] = _p2.rc;
         record[18][_index] = _p1.ospin;
         record[19][_index] = _p2.ospin;
+#ifndef SEVN
+        // in SEVN mode, rows 20-32 hold SEVN quantities instead
         record[20][_index] = _p1.caseMT;
         record[21][_index] = _p2.caseMT;
+#endif
     }
 
     //! set binary type to -1 for the given event index to indicate the end of record
@@ -491,8 +504,10 @@ public:
             <<" rc2[R*]= "<<record[17][index]
             <<" ospin1= "<<record[18][index]
             <<" ospin2= "<<record[19][index]
+#ifndef SEVN
             <<" caseMT1= "<<int(record[20][index])
             <<" caseMT2= "<<int(record[21][index])
+#endif
 #ifdef SEVN
             <<" Mzams_SEVN1[M*]= "<<record[20][index]
             <<" Mzams_SEVN2[M*]= "<<record[21][index]
@@ -537,8 +552,11 @@ public:
              <<std::setw(_width)<<"rc2[R*]"
              <<std::setw(_width)<<"ospin1"
              <<std::setw(_width)<<"ospin2"
+#ifndef SEVN
              <<std::setw(_width)<<"caseMT1"
-             <<std::setw(_width)<<"caseMT2";
+             <<std::setw(_width)<<"caseMT2"
+#endif
+            ;
 
     }
 
@@ -556,7 +574,7 @@ public:
 #ifdef SEVN
         for (int i=10; i<33; i++) _fout<<std::setw(_width)<<record[i][_index];
 #else
-	for (int i=10; i<20; i++) _fout<<std::setw(_width)<<record[i][_index];
+        for (int i=10; i<20; i++) _fout<<std::setw(_width)<<record[i][_index];
         for (int i=20; i<22; i++) _fout<<std::setw(_width)<<int(record[i][_index]);
 #endif
     }
