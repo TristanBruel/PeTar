@@ -207,7 +207,7 @@
 *      LOGICAL isave,iplot
       REAL*8 rl,mlwind,vrotf,corerd
       EXTERNAL rl,mlwind,vrotf,corerd
-      REAL*8 bpp(9,20)
+      REAL*8 bpp(9,22)
 *      REAL bcm(50000,34),bpp(80,10)
 *      COMMON /BINARY/ bcm,bpp
 *
@@ -484,6 +484,8 @@
                bpp(jp,18) = radc(2)
                bpp(jp,19) = ospin(1)
                bpp(jp,20) = ospin(2)
+               bpp(jp,21) = caseMT(1)
+               bpp(jp,22) = caseMT(2)
             endif
          endif
 *
@@ -902,6 +904,8 @@
             bpp(jp,18) = radc(2)
             bpp(jp,19) = ospin(1)
             bpp(jp,20) = ospin(2)
+            bpp(jp,21) = caseMT(1)
+            bpp(jp,22) = caseMT(2)
          endif
 *
  6    continue
@@ -953,6 +957,8 @@
          bpp(jp,18) = radc(2)
          bpp(jp,19) = ospin(1)
          bpp(jp,20) = ospin(2)
+         bpp(jp,21) = caseMT(1)
+         bpp(jp,22) = caseMT(2)
 
          if(snova)then
             bpp(jp,10) = 2.0
@@ -1152,6 +1158,8 @@
          bpp(jp,18) = radc(2)
          bpp(jp,19) = ospin(1)
          bpp(jp,20) = ospin(2)
+         bpp(jp,21) = caseMT(1)
+         bpp(jp,22) = caseMT(2)
 *         btype = 2
       endif
 *
@@ -1205,6 +1213,8 @@
          bpp(jp,18) = radc(2)
          bpp(jp,19) = ospin(1)
          bpp(jp,20) = ospin(2)
+         bpp(jp,21) = caseMT(1)
+         bpp(jp,22) = caseMT(2)
       endif
 *      btype = 3
 *
@@ -1431,6 +1441,8 @@
          bpp(jp,18) = radc(2)
          bpp(jp,19) = ospin(1)
          bpp(jp,20) = ospin(2)
+         bpp(jp,21) = caseMT(1)
+         bpp(jp,22) = caseMT(2)
          if(kstar(1).eq.15) then
             bpp(jp,2) = zero
 *            bpp(jp,6) = zero
@@ -1441,6 +1453,7 @@
             bpp(jp,15) = zero
             bpp(jp,17) = zero
             bpp(jp,19) = zero
+            bpp(jp,21) = zero
          endif
          if(kstar(2).eq.15) then
             bpp(jp,3) = zero
@@ -1452,6 +1465,7 @@
             bpp(jp,16) = zero
             bpp(jp,18) = zero
             bpp(jp,20) = zero
+            bpp(jp,22) = zero
          endif
 *
          epoch(j1) = tphys - aj(j1)
@@ -1717,6 +1731,8 @@
                   bpp(jp,18) = radc(2)
                   bpp(jp,19) = ospin(1)
                   bpp(jp,20) = ospin(2)
+                  bpp(jp,21) = caseMT(1)
+                  bpp(jp,22) = caseMT(2)
 *
                endif
             endif            
@@ -1786,6 +1802,8 @@
                   bpp(jp,18) = radc(2)
                   bpp(jp,19) = ospin(1)
                   bpp(jp,20) = ospin(2)
+                  bpp(jp,21) = caseMT(1)
+                  bpp(jp,22) = caseMT(2)
 *
                endif
 *
@@ -2239,6 +2257,8 @@
             bpp(jp,18) = radc(2)
             bpp(jp,19) = ospin(1)
             bpp(jp,20) = ospin(2)
+            bpp(jp,21) = caseMT(1)
+            bpp(jp,22) = caseMT(2)
 
          endif
 *
@@ -2340,6 +2360,8 @@
          bpp(jp,18) = radc(2)
          bpp(jp,19) = ospin(1)
          bpp(jp,20) = ospin(2)
+         bpp(jp,21) = caseMT(1)
+         bpp(jp,22) = caseMT(2)
       endif
 *
 * Test whether the primary still fills its Roche lobe.
@@ -2374,6 +2396,8 @@
          bpp(jp,18) = radc(2)
          bpp(jp,19) = ospin(1)
          bpp(jp,20) = ospin(2)
+         bpp(jp,21) = caseMT(1)
+         bpp(jp,22) = caseMT(2)
          dtm = 0.d0
          goto 4
       endif
@@ -2413,6 +2437,8 @@
       bpp(jp,18) = radc(2)
       bpp(jp,19) = ospin(1)
       bpp(jp,20) = ospin(2)
+      bpp(jp,21) = caseMT(1)
+      bpp(jp,22) = caseMT(2)
 *
       if(kstar(j1).ge.2.and.kstar(j1).le.9.and.kstar(j1).ne.7)then
          CALL comenv(mass0(j1),mass(j1),massc(j1),aj(j1),jspin(j1),
@@ -2455,6 +2481,8 @@
          bpp(jp,18) = radc(2)
          bpp(jp,19) = ospin(1)
          bpp(jp,20) = ospin(2)
+         bpp(jp,21) = caseMT(1)
+         bpp(jp,22) = caseMT(2)
          if(kstar(1).eq.15) then
             bpp(jp,2) = zero
 *            bpp(jp,6) = zero
@@ -2465,6 +2493,7 @@
             bpp(jp,15) = zero
             bpp(jp,17) = zero
             bpp(jp,19) = zero
+            bpp(jp,21) = zero
          endif
          if(kstar(2).eq.15) then
             bpp(jp,3) = zero
@@ -2476,6 +2505,7 @@
             bpp(jp,16) = zero
             bpp(jp,18) = zero
             bpp(jp,20) = zero
+            bpp(jp,22) = zero
          endif
       endif
       epoch(1) = tphys - aj(1)
@@ -2533,6 +2563,8 @@
             bpp(jp,18) = radc(2)
             bpp(jp,19) = ospin(1)
             bpp(jp,20) = ospin(2)
+            bpp(jp,21) = caseMT(1)
+            bpp(jp,22) = caseMT(2)
             if(coel)then
 *               bpp(jp,10) = 6.0
                bpp(jp,10) = 10.0
@@ -2562,6 +2594,7 @@
                bpp(jp,15) = zero
                bpp(jp,17) = zero
                bpp(jp,19) = zero
+               bpp(jp,21) = zero
             endif
             if(kstar(2).eq.15) then
                bpp(jp,3) = zero
@@ -2573,6 +2606,7 @@
                bpp(jp,16) = zero
                bpp(jp,18) = zero
                bpp(jp,20) = zero
+               bpp(jp,22) = zero
             endif
          endif
          if(kstar(2).eq.15)then
@@ -2617,6 +2651,8 @@
          bpp(jp,18) = radc(2)
          bpp(jp,19) = ospin(1)
          bpp(jp,20) = ospin(2)
+         bpp(jp,21) = caseMT(1)
+         bpp(jp,22) = caseMT(2)
 
          if(coel)then
 *            bpp(jp,9) = ngtv
@@ -2653,6 +2689,7 @@
             bpp(jp,15) = zero
             bpp(jp,17) = zero
             bpp(jp,19) = zero
+            bpp(jp,21) = zero
          endif
          if(kstar(2).eq.15)then
             bpp(jp,3) = zero
@@ -2664,6 +2701,7 @@
             bpp(jp,16) = zero
             bpp(jp,18) = zero
             bpp(jp,20) = zero
+            bpp(jp,22) = zero
          endif
 
       endif
