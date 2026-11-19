@@ -1051,13 +1051,18 @@
 * Test whether Roche lobe overflow has begun.
 *
       if(rad(j1).gt.rol(j1))then
+* Modify only if first case of mass transfer
+         if(caseMT(j1).eq.0)then
 * Identify the case of mass transfer
-         if(kstar(j1).le.1.and.caseMT(j1).eq.0)then
-            caseMT(j1) = 1
-         elseif(kstar(j1).le.3.and.caseMT(j1).eq.0)then
-            caseMT(j1) = 2
-         elseif(kstar(j1).gt.3.and.caseMT(j1).eq.0)then
-            caseMT(j1) = 3
+            if(kstar(j1).ge.0.and.kstar(j1).le.1.or.
+     &        kstar(j1).eq.7)then
+               caseMT(j1) = 1
+            elseif(kstar(j1).eq.2.or.kstar(j1).eq.8)then
+               caseMT(j1) = 2
+            elseif(kstar(j1).ge.3.and.kstar(j1).le.6.or.
+     &        kstar(j1).eq.9)then
+               caseMT(j1) = 3
+            endif
          endif
 *
 * Interpolate back until the primary is just filling its Roche lobe.
